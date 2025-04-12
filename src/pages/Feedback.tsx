@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
 import { PageTitle } from "@/components/common/PageTitle";
 import { EmptyState } from "@/components/common/EmptyState";
 import { AddEditFeedbackDialog } from "@/components/dialogs/AddEditFeedbackDialog";
@@ -55,7 +54,7 @@ const Feedback = () => {
   ].sort((a, b) => b.votes - a.votes); // Sort by most votes
   
   return (
-    <MainLayout>
+    <>
       <PageTitle
         title="Feedback"
         description="Collect and organize product feedback"
@@ -190,7 +189,7 @@ const Feedback = () => {
           }
         }}
       />
-    </MainLayout>
+    </>
   );
 };
 

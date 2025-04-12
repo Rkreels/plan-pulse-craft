@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
 import { PageTitle } from "@/components/common/PageTitle";
 import { EmptyState } from "@/components/common/EmptyState";
 import { AccessDenied } from "@/components/common/AccessDenied";
@@ -46,17 +45,15 @@ const Features = () => {
     
     if (!feature) {
       return (
-        <MainLayout>
-          <EmptyState 
-            title="Feature Not Found" 
-            description="The feature you are looking for doesn't exist or has been removed."
-            icon={<Tags className="h-10 w-10 text-muted-foreground" />}
-            action={{
-              label: "Back to Features",
-              onClick: () => navigate("/features")
-            }}
-          />
-        </MainLayout>
+        <EmptyState 
+          title="Feature Not Found" 
+          description="The feature you are looking for doesn't exist or has been removed."
+          icon={<Tags className="h-10 w-10 text-muted-foreground" />}
+          action={{
+            label: "Back to Features",
+            onClick: () => navigate("/features")
+          }}
+        />
       );
     }
 
@@ -65,37 +62,35 @@ const Features = () => {
     const release = feature.releaseId ? releases.find(r => r.id === feature.releaseId) : undefined;
     
     return (
-      <MainLayout>
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">{feature.title}</h1>
-            <div className="flex items-center gap-3">
-              <Badge variant="outline" className="text-sm">ID: {feature.id}</Badge>
-              <Badge className={
-                feature.status === "completed" ? "bg-green-500" :
-                feature.status === "in_progress" ? "bg-blue-500" :
-                feature.status === "review" ? "bg-amber-500" :
-                "bg-slate-500"
-              }>
-                {feature.status.replace('_', ' ')}
-              </Badge>
-              <Badge variant="secondary">{feature.priority}</Badge>
-            </div>
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">{feature.title}</h1>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="text-sm">ID: {feature.id}</Badge>
+            <Badge className={
+              feature.status === "completed" ? "bg-green-500" :
+              feature.status === "in_progress" ? "bg-blue-500" :
+              feature.status === "review" ? "bg-amber-500" :
+              "bg-slate-500"
+            }>
+              {feature.status.replace('_', ' ')}
+            </Badge>
+            <Badge variant="secondary">{feature.priority}</Badge>
           </div>
-          
-          {canEdit && (
-            <Button 
-              variant="outline" 
-              className="flex gap-2"
-              onClick={() => {
-                setSelectedFeature(feature);
-                setIsDialogOpen(true);
-              }}
-            >
-              <Edit className="h-4 w-4" /> Edit Feature
-            </Button>
-          )}
         </div>
+        
+        {canEdit && (
+          <Button 
+            variant="outline" 
+            className="flex gap-2"
+            onClick={() => {
+              setSelectedFeature(feature);
+              setIsDialogOpen(true);
+            }}
+          >
+            <Edit className="h-4 w-4" /> Edit Feature
+          </Button>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
@@ -251,13 +246,13 @@ const Features = () => {
             }
           }}
         />
-      </MainLayout>
+      </div>
     );
   }
   
   // Features list view
   return (
-    <MainLayout>
+    <>
       <PageTitle
         title="Features"
         description="Manage and track product features"
@@ -374,7 +369,7 @@ const Features = () => {
           }
         }}
       />
-    </MainLayout>
+    </>
   );
 };
 
