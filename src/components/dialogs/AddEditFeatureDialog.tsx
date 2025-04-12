@@ -44,9 +44,13 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
   // Load feature data when editing
   useEffect(() => {
     if (feature) {
-      setFormData({
-        ...feature
-      });
+      // Convert empty values to "none" for select components
+      const processedFeature = {
+        ...feature,
+        epicId: feature.epicId || "none",
+        releaseId: feature.releaseId || "none"
+      };
+      setFormData(processedFeature);
     } else {
       // Reset form for new feature
       setFormData({
@@ -60,6 +64,8 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
         assignedTo: currentUser?.id,
         votes: 0,
         feedback: [],
+        epicId: "none",
+        releaseId: "none",
         createdAt: new Date(),
         updatedAt: new Date(),
         workspaceId: "w1",
@@ -68,18 +74,27 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
   }, [feature, currentUser]);
 
   const handleChange = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Convert "none" value to null or empty string as appropriate
+    const processedValue = (field === "epicId" || field === "releaseId") && value === "none" ? "" : value;
+    setFormData((prev) => ({ ...prev, [field]: processedValue }));
   };
 
   const handleSubmit = () => {
+    // Process the form data for submission
+    const processedData = {
+      ...formData,
+      epicId: formData.epicId === "none" ? "" : formData.epicId,
+      releaseId: formData.releaseId === "none" ? "" : formData.releaseId
+    };
+    
     const newFeature = {
       id: feature?.id || `f${Date.now()}`, // Generate ID if new
-      ...formData,
-      effort: Number(formData.effort) || 5,
-      value: Number(formData.value) || 5,
-      votes: Number(formData.votes) || 0,
-      tags: formData.tags || [],
-      feedback: formData.feedback || [],
+      ...processedData,
+      effort: Number(processedData.effort) || 5,
+      value: Number(processedData.value) || 5,
+      votes: Number(processedData.votes) || 0,
+      tags: processedData.tags || [],
+      feedback: processedData.feedback || [],
       updatedAt: new Date(),
       createdAt: feature?.createdAt || new Date(),
     } as Feature;
@@ -198,7 +213,7 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
                   <SelectValue placeholder="Select epic (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {epics.map((epic) => (
                     <SelectItem key={epic.id} value={epic.id}>{epic.title}</SelectItem>
                   ))}
@@ -216,7 +231,7 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
                   <SelectValue placeholder="Select release (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {releases.map((release) => (
                     <SelectItem key={release.id} value={release.id}>{release.name}</SelectItem>
                   ))}
