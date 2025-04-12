@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
 import { PageTitle } from "@/components/common/PageTitle";
 import { EmptyState } from "@/components/common/EmptyState";
 import { AccessDenied } from "@/components/common/AccessDenied";
@@ -43,7 +42,7 @@ const Goals = () => {
 
   // Role-based access control
   if (!hasRole("executive")) {
-    return <MainLayout><AccessDenied requiredRole="executive" /></MainLayout>;
+    return <AccessDenied requiredRole="executive" />;
   }
 
   // If we have an ID parameter, show a single goal view
@@ -52,17 +51,15 @@ const Goals = () => {
     
     if (!goal) {
       return (
-        <MainLayout>
-          <EmptyState 
-            title="Goal Not Found" 
-            description="The goal you are looking for doesn't exist or has been removed."
-            icon={<GoalIcon className="h-10 w-10 text-muted-foreground" />}
-            action={{
-              label: "Back to Goals",
-              onClick: () => navigate("/goals")
-            }}
-          />
-        </MainLayout>
+        <EmptyState 
+          title="Goal Not Found" 
+          description="The goal you are looking for doesn't exist or has been removed."
+          icon={<GoalIcon className="h-10 w-10 text-muted-foreground" />}
+          action={{
+            label: "Back to Goals",
+            onClick: () => navigate("/goals")
+          }}
+        />
       );
     }
 
@@ -72,7 +69,7 @@ const Goals = () => {
     );
     
     return (
-      <MainLayout>
+      <>
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight mb-2">{goal.title}</h1>
@@ -202,13 +199,13 @@ const Goals = () => {
             }
           }}
         />
-      </MainLayout>
+      </>
     );
   }
   
   // Goals list view
   return (
-    <MainLayout>
+    <>
       <PageTitle
         title="Strategic Goals"
         description="Define and track your organization's key objectives"
@@ -319,7 +316,7 @@ const Goals = () => {
           }
         }}
       />
-    </MainLayout>
+    </>
   );
 };
 

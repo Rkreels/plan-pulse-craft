@@ -167,7 +167,7 @@ const Roadmap = () => {
   };
 
   return (
-    <MainLayout>
+    <>
       <PageTitle
         title="Product Roadmap"
         description="Strategic view of your product plan"
@@ -204,7 +204,7 @@ const Roadmap = () => {
       </div>
       
       {renderTimelineView()}
-    </MainLayout>
+    </>
   );
 };
 

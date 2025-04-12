@@ -24,7 +24,7 @@ const Tasks = () => {
   
   // Role-based access control
   if (!hasRole("developer")) {
-    return <MainLayout><AccessDenied requiredRole="developer" /></MainLayout>;
+    return <AccessDenied requiredRole="developer" />;
   }
   
   // Get dev tasks (in progress or review features)
@@ -40,7 +40,7 @@ const Tasks = () => {
   };
 
   return (
-    <MainLayout>
+    <>
       <PageTitle
         title="Development Tasks"
         description="Track and manage development tasks"
@@ -149,7 +149,7 @@ const Tasks = () => {
           </div>
         </div>
       )}
-    </MainLayout>
+    </>
   );
 };
 
