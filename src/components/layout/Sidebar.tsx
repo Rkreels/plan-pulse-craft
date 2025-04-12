@@ -21,55 +21,80 @@ import {
   Settings, 
   Tags 
 } from "lucide-react";
-import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
+import { useAppContext } from "@/contexts/AppContext";
 
 export function Sidebar() {
-  const [activePath, setActivePath] = useState("/");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { hasPermission } = useRoleAccess();
+  const { currentUser } = useAppContext();
 
   const menuItems = [
     {
       title: "Dashboard",
       path: "/",
       icon: LayoutDashboard,
+      roles: ["product_manager", "executive", "developer", "customer"]
     },
     {
       title: "Roadmap",
       path: "/roadmap",
       icon: BarChart3,
+      roles: ["product_manager", "executive", "developer", "customer"]
     },
     {
       title: "Goals",
       path: "/goals",
       icon: Goal,
+      roles: ["product_manager", "executive"]
     },
     {
       title: "Releases",
       path: "/releases",
       icon: CalendarDays,
+      roles: ["product_manager", "executive", "developer"]
     },
     {
       title: "Features",
       path: "/features",
       icon: Tags,
+      roles: ["product_manager", "executive", "developer", "customer"]
     },
     {
       title: "Ideas",
       path: "/ideas",
       icon: LightbulbIcon,
+      roles: ["product_manager", "executive", "developer", "customer"]
     },
     {
       title: "Feedback",
       path: "/feedback",
       icon: MessagesSquare,
+      roles: ["product_manager", "executive", "developer", "customer"]
     },
     {
       title: "Tasks",
       path: "/tasks",
       icon: CheckSquare,
+      roles: ["product_manager", "developer"]
     },
   ];
 
-  const isActive = (path: string) => activePath === path;
+  const isActive = (path: string) => {
+    // Check if the current path starts with the given path
+    // This handles active state for nested routes like /features/123
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  // Filter menu items based on user role
+  const filteredMenuItems = menuItems.filter(item => 
+    currentUser && item.roles.includes(currentUser.role)
+  );
 
   return (
     <UISidebar>
@@ -81,13 +106,13 @@ export function Sidebar() {
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {filteredMenuItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton asChild>
                     <Button
                       variant={isActive(item.path) ? "secondary" : "ghost"}
                       className="w-full justify-start gap-2"
-                      onClick={() => setActivePath(item.path)}
+                      onClick={() => navigate(item.path)}
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
@@ -103,9 +128,9 @@ export function Sidebar() {
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <Button
-                  variant="ghost"
+                  variant={isActive("/settings") ? "secondary" : "ghost"}
                   className="w-full justify-start gap-2"
-                  onClick={() => setActivePath("/settings")}
+                  onClick={() => navigate("/settings")}
                 >
                   <Settings className="h-4 w-4" />
                   <span>Settings</span>
