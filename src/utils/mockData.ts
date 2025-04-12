@@ -7,6 +7,13 @@ import {
 // Mock Users
 export const mockUsers: User[] = [
   {
+    id: "u0",
+    name: "Admin User",
+    email: "admin@example.com",
+    avatar: "https://ui-avatars.com/api/?name=Admin+User&background=9B87F5&color=fff",
+    role: "admin"
+  },
+  {
     id: "u1",
     name: "Alex Kim",
     email: "alex@example.com",

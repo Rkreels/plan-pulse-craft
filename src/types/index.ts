@@ -5,7 +5,7 @@ export interface User {
   name: string;
   email: string;
   avatar?: string;
-  role: "product_manager" | "executive" | "developer" | "customer";
+  role: "admin" | "product_manager" | "executive" | "developer" | "customer";
 }
 
 // Workspace Types

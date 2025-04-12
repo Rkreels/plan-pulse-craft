@@ -4,6 +4,7 @@ import { User } from "@/types";
 
 // Define role hierarchy
 const roleHierarchy: Record<string, number> = {
+  "admin": 5,
   "product_manager": 4,
   "executive": 3,
   "developer": 2,
@@ -12,6 +13,20 @@ const roleHierarchy: Record<string, number> = {
 
 // Define permissions for each role
 const rolePermissions: Record<string, Record<string, boolean>> = {
+  "admin": {
+    "create_goal": true,
+    "edit_goal": true,
+    "delete_goal": true,
+    "create_release": true,
+    "edit_release": true,
+    "delete_release": true,
+    "create_feature": true,
+    "edit_feature": true,
+    "delete_feature": true,
+    "view_roadmap": true,
+    "admin_access": true,
+    "manage_users": true
+  },
   "product_manager": {
     "create_goal": true,
     "edit_goal": true,

@@ -11,19 +11,24 @@ import {
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Moon, Search, Sun, User } from "lucide-react";
+import { Bell, LogOut, Moon, Search, Sun, User } from "lucide-react";
 import { useState } from "react";
 import { useAppContext } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
 
 export function TopNav() {
-  const { currentUser } = useAppContext();
+  const { currentUser, setCurrentUser } = useAppContext();
   const navigate = useNavigate();
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
     // In a real app, we would update the document class or use a theme provider
+  };
+  
+  const handleLogout = () => {
+    setCurrentUser(null);
+    navigate("/login");
   };
 
   // Get initials for avatar fallback
@@ -93,7 +98,9 @@ export function TopNav() {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/settings")}>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Log out</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" /> Log out
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
