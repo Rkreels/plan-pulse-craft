@@ -36,49 +36,49 @@ export function Sidebar() {
       title: "Dashboard",
       path: "/",
       icon: LayoutDashboard,
-      roles: ["product_manager", "executive", "developer", "customer"]
+      roles: ["admin", "product_manager", "executive", "developer", "customer"]
     },
     {
       title: "Roadmap",
       path: "/roadmap",
       icon: BarChart3,
-      roles: ["product_manager", "executive", "developer", "customer"]
+      roles: ["admin", "product_manager", "executive", "developer", "customer"]
     },
     {
       title: "Goals",
       path: "/goals",
       icon: Goal,
-      roles: ["product_manager", "executive"]
+      roles: ["admin", "product_manager", "executive"]
     },
     {
       title: "Releases",
       path: "/releases",
       icon: CalendarDays,
-      roles: ["product_manager", "executive", "developer"]
+      roles: ["admin", "product_manager", "executive", "developer"]
     },
     {
       title: "Features",
       path: "/features",
       icon: Tags,
-      roles: ["product_manager", "executive", "developer", "customer"]
+      roles: ["admin", "product_manager", "executive", "developer", "customer"]
     },
     {
       title: "Ideas",
       path: "/ideas",
       icon: LightbulbIcon,
-      roles: ["product_manager", "executive", "developer", "customer"]
+      roles: ["admin", "product_manager", "executive", "developer", "customer"]
     },
     {
       title: "Feedback",
       path: "/feedback",
       icon: MessagesSquare,
-      roles: ["product_manager", "executive", "developer", "customer"]
+      roles: ["admin", "product_manager", "executive", "developer", "customer"]
     },
     {
       title: "Tasks",
       path: "/tasks",
       icon: CheckSquare,
-      roles: ["product_manager", "developer"]
+      roles: ["admin", "product_manager", "developer"]
     },
   ];
 
