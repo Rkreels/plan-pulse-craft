@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
 import { PageTitle } from "@/components/common/PageTitle";
 import { EmptyState } from "@/components/common/EmptyState";
 import { AccessDenied } from "@/components/common/AccessDenied";
