@@ -7,7 +7,7 @@ import { AddEditGoalDialog } from "@/components/dialogs/AddEditGoalDialog";
 import { useAppContext } from "@/contexts/AppContext";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { Goal as GoalType } from "@/types";
-import { PlusCircle, Goal as GoalIcon, Edit, Trash2, Eye } from "lucide-react";
+import { PlusCircle, Goal as GoalIcon, Edit, Trash2, Eye, ArrowLeft } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -65,13 +65,20 @@ const Goals = () => {
 
     // Find related initiatives
     const relatedInitiatives = initiatives.filter(initiative => 
-      initiative.goals.includes(goal.id)
+      initiative.goals?.includes(goal.id)
     );
     
     return (
       <>
         <div className="flex justify-between items-start mb-6">
           <div>
+            <Button 
+              variant="ghost" 
+              className="mb-4" 
+              onClick={() => navigate("/goals")}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Goals
+            </Button>
             <h1 className="text-3xl font-bold tracking-tight mb-2">{goal.title}</h1>
             <div className="flex items-center gap-3">
               <Badge variant="outline" className="text-sm">ID: {goal.id}</Badge>
@@ -281,7 +288,10 @@ const Goals = () => {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-                <CardTitle className="mt-2 text-lg cursor-pointer hover:underline" onClick={() => navigate(`/goals/${goal.id}`)}>
+                <CardTitle 
+                  className="mt-2 text-lg cursor-pointer hover:underline" 
+                  onClick={() => navigate(`/goals/${goal.id}`)}
+                >
                   {goal.title}
                 </CardTitle>
               </CardHeader>

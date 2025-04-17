@@ -15,6 +15,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Goal } from "@/types";
 import { useAppContext } from "@/contexts/AppContext";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
 
 interface AddEditGoalDialogProps {
   open: boolean;
@@ -32,6 +40,8 @@ export function AddEditGoalDialog({ open, onOpenChange, goal, onSave }: AddEditG
     progress: 0,
     ownerId: currentUser?.id || "",
     workspaceId: "w1", // Default workspace ID
+    startDate: undefined,
+    targetDate: undefined,
   });
 
   // Load goal data when editing
@@ -49,11 +59,13 @@ export function AddEditGoalDialog({ open, onOpenChange, goal, onSave }: AddEditG
         progress: 0,
         ownerId: currentUser?.id || "",
         workspaceId: "w1",
+        startDate: undefined,
+        targetDate: undefined,
       });
     }
   }, [goal, currentUser]);
 
-  const handleChange = (field: string, value: string | number) => {
+  const handleChange = (field: string, value: string | number | Date | undefined) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -131,6 +143,60 @@ export function AddEditGoalDialog({ open, onOpenChange, goal, onSave }: AddEditG
                 value={formData.progress || 0}
                 onChange={(e) => handleChange("progress", parseInt(e.target.value))}
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Start Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.startDate ? (
+                      format(new Date(formData.startDate), 'PPP')
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={formData.startDate ? new Date(formData.startDate) : undefined}
+                    onSelect={(date) => handleChange("startDate", date)}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
+              <Label>Target Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.targetDate ? (
+                      format(new Date(formData.targetDate), 'PPP')
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={formData.targetDate ? new Date(formData.targetDate) : undefined}
+                    onSelect={(date) => handleChange("targetDate", date)}
+                    fromDate={formData.startDate ? new Date(formData.startDate) : undefined}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>

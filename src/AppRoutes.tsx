@@ -74,6 +74,16 @@ const AppRoutes = () => {
         } 
       />
       <Route 
+        path="/goals/:id" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Goals />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
         path="/ideas" 
         element={
           <ProtectedRoute>
