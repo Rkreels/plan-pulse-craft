@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageTitle } from "@/components/common/PageTitle";
 import { EmptyState } from "@/components/common/EmptyState";
 import { AccessDenied } from "@/components/common/AccessDenied";
@@ -7,7 +7,7 @@ import { AddEditReleaseDialog } from "@/components/dialogs/AddEditReleaseDialog"
 import { useAppContext } from "@/contexts/AppContext";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { Release as ReleaseType, Feature } from "@/types";
-import { PlusCircle, CalendarDays, Edit, Trash2, Eye, CheckCircle, AlertCircle } from "lucide-react";
+import { PlusCircle, CalendarDays, Edit, Trash2, Eye, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -43,6 +43,9 @@ const Releases = () => {
   if (!hasRole("developer")) {
     return <AccessDenied requiredRole="developer" />;
   }
+
+  // Find the current release if we're on a detail page
+  const currentRelease = id ? releases.find(r => r.id === id) : undefined;
 
   // Calculate release status info
   const getReleaseStats = (release: ReleaseType) => {
@@ -82,6 +85,17 @@ const Releases = () => {
     
     return (
       <>
+        <div className="flex items-center mb-4">
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/releases")}
+            className="mr-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" /> Back to Releases
+          </Button>
+        </div>
+
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight mb-2">Release {release.version}</h1>
@@ -330,7 +344,10 @@ const Releases = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <CardTitle className="mt-2 text-lg cursor-pointer hover:underline" onClick={() => navigate(`/releases/${release.id}`)}>
+                  <CardTitle 
+                    className="mt-2 text-lg cursor-pointer hover:underline" 
+                    onClick={() => navigate(`/releases/${release.id}`)}
+                  >
                     Release {release.version}
                   </CardTitle>
                 </CardHeader>

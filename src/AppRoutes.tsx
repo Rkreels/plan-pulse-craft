@@ -104,6 +104,16 @@ const AppRoutes = () => {
         } 
       />
       <Route 
+        path="/releases/:id" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Releases />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
         path="/roadmap" 
         element={
           <ProtectedRoute>

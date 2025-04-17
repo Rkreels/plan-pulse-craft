@@ -14,6 +14,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Release } from "@/types";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
 
 interface AddEditReleaseDialogProps {
   open: boolean;
@@ -32,13 +36,15 @@ export function AddEditReleaseDialog({ open, onOpenChange, release, onSave }: Ad
     features: [],
     epics: [],
     workspaceId: "w1", // Default workspace ID
+    notes: "", // Added notes field
   });
 
   // Load release data when editing
   useEffect(() => {
     if (release) {
       setFormData({
-        ...release
+        ...release,
+        releaseDate: new Date(release.releaseDate)
       });
     } else {
       // Reset form for new release
@@ -51,6 +57,7 @@ export function AddEditReleaseDialog({ open, onOpenChange, release, onSave }: Ad
         features: [],
         epics: [],
         workspaceId: "w1",
+        notes: "",
       });
     }
   }, [release]);
@@ -115,6 +122,17 @@ export function AddEditReleaseDialog({ open, onOpenChange, release, onSave }: Ad
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="notes">Release Notes</Label>
+            <Textarea 
+              id="notes"
+              value={formData.notes || ""}
+              onChange={(e) => handleChange("notes", e.target.value)}
+              placeholder="Detailed notes about changes in this release"
+              rows={3}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
@@ -136,12 +154,25 @@ export function AddEditReleaseDialog({ open, onOpenChange, release, onSave }: Ad
 
             <div className="space-y-2">
               <Label htmlFor="releaseDate">Release Date</Label>
-              <Input 
-                id="releaseDate"
-                type="date"
-                value={formData.releaseDate ? new Date(formData.releaseDate).toISOString().split('T')[0] : ""}
-                onChange={(e) => handleChange("releaseDate", new Date(e.target.value))}
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.releaseDate ? format(new Date(formData.releaseDate), "PPP") : "Select a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={new Date(formData.releaseDate || new Date())}
+                    onSelect={(date) => date && handleChange("releaseDate", date)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>
