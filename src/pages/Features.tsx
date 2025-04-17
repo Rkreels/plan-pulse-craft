@@ -7,7 +7,7 @@ import { AddEditFeatureDialog } from "@/components/dialogs/AddEditFeatureDialog"
 import { useAppContext } from "@/contexts/AppContext";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { Feature as FeatureType } from "@/types";
-import { PlusCircle, Tags, Edit, Trash2, Eye } from "lucide-react";
+import { PlusCircle, Tags, Edit, Trash2, Eye, ArrowLeft } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -62,35 +62,44 @@ const Features = () => {
     const release = feature.releaseId ? releases.find(r => r.id === feature.releaseId) : undefined;
     
     return (
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">{feature.title}</h1>
-          <div className="flex items-center gap-3">
-            <Badge variant="outline" className="text-sm">ID: {feature.id}</Badge>
-            <Badge className={
-              feature.status === "completed" ? "bg-green-500" :
-              feature.status === "in_progress" ? "bg-blue-500" :
-              feature.status === "review" ? "bg-amber-500" :
-              "bg-slate-500"
-            }>
-              {feature.status.replace('_', ' ')}
-            </Badge>
-            <Badge variant="secondary">{feature.priority}</Badge>
+      <div className="space-y-6">
+        <div className="flex flex-wrap justify-between items-start gap-4">
+          <div>
+            <Button 
+              variant="ghost" 
+              className="mb-2 px-0"
+              onClick={() => navigate("/features")}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" /> Back to Features
+            </Button>
+            <h1 className="text-3xl font-bold tracking-tight mb-2">{feature.title}</h1>
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge variant="outline" className="text-sm">ID: {feature.id}</Badge>
+              <Badge className={
+                feature.status === "completed" ? "bg-green-500" :
+                feature.status === "in_progress" ? "bg-blue-500" :
+                feature.status === "review" ? "bg-amber-500" :
+                "bg-slate-500"
+              }>
+                {feature.status.replace('_', ' ')}
+              </Badge>
+              <Badge variant="secondary">{feature.priority}</Badge>
+            </div>
           </div>
+          
+          {canEdit && (
+            <Button 
+              variant="outline" 
+              className="flex gap-2"
+              onClick={() => {
+                setSelectedFeature(feature);
+                setIsDialogOpen(true);
+              }}
+            >
+              <Edit className="h-4 w-4" /> Edit Feature
+            </Button>
+          )}
         </div>
-        
-        {canEdit && (
-          <Button 
-            variant="outline" 
-            className="flex gap-2"
-            onClick={() => {
-              setSelectedFeature(feature);
-              setIsDialogOpen(true);
-            }}
-          >
-            <Edit className="h-4 w-4" /> Edit Feature
-          </Button>
-        )}
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
@@ -182,7 +191,7 @@ const Features = () => {
                   </div>
                 )}
                 
-                {feature.tags.length > 0 && (
+                {feature.tags && feature.tags.length > 0 && (
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Tags</p>
                     <div className="flex flex-wrap gap-1">

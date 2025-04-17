@@ -54,6 +54,16 @@ const AppRoutes = () => {
         } 
       />
       <Route 
+        path="/features/:id" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Features />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
         path="/feedback" 
         element={
           <ProtectedRoute>

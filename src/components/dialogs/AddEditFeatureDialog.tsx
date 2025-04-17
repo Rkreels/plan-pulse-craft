@@ -15,6 +15,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Feature, Epic, Release } from "@/types";
 import { useAppContext } from "@/contexts/AppContext";
+import { X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface AddEditFeatureDialogProps {
   open: boolean;
@@ -28,6 +30,8 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
   const [formData, setFormData] = useState<Partial<Feature>>({
     title: "",
     description: "",
+    userStory: "",
+    acceptanceCriteria: [],
     status: "idea",
     priority: "medium",
     effort: 5,
@@ -40,6 +44,9 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
     updatedAt: new Date(),
     workspaceId: "w1",
   });
+  
+  const [currentTag, setCurrentTag] = useState("");
+  const [currentCriterion, setCurrentCriterion] = useState("");
 
   // Load feature data when editing
   useEffect(() => {
@@ -48,7 +55,8 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
       const processedFeature = {
         ...feature,
         epicId: feature.epicId || "none",
-        releaseId: feature.releaseId || "none"
+        releaseId: feature.releaseId || "none",
+        acceptanceCriteria: feature.acceptanceCriteria || [],
       };
       setFormData(processedFeature);
     } else {
@@ -56,6 +64,8 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
       setFormData({
         title: "",
         description: "",
+        userStory: "",
+        acceptanceCriteria: [],
         status: "idea",
         priority: "medium",
         effort: 5,
@@ -71,12 +81,48 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
         workspaceId: "w1",
       });
     }
-  }, [feature, currentUser]);
+    setCurrentTag("");
+    setCurrentCriterion("");
+  }, [feature, currentUser, open]);
 
   const handleChange = (field: string, value: any) => {
     // Convert "none" value to null or empty string as appropriate
     const processedValue = (field === "epicId" || field === "releaseId") && value === "none" ? "" : value;
     setFormData((prev) => ({ ...prev, [field]: processedValue }));
+  };
+
+  const addTag = () => {
+    if (currentTag.trim() && !formData.tags?.includes(currentTag.trim())) {
+      setFormData((prev) => ({
+        ...prev,
+        tags: [...(prev.tags || []), currentTag.trim()]
+      }));
+      setCurrentTag("");
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      tags: (prev.tags || []).filter(tag => tag !== tagToRemove)
+    }));
+  };
+
+  const addCriterion = () => {
+    if (currentCriterion.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        acceptanceCriteria: [...(prev.acceptanceCriteria || []), currentCriterion.trim()]
+      }));
+      setCurrentCriterion("");
+    }
+  };
+
+  const removeCriterion = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      acceptanceCriteria: (prev.acceptanceCriteria || []).filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = () => {
@@ -94,6 +140,7 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
       value: Number(processedData.value) || 5,
       votes: Number(processedData.votes) || 0,
       tags: processedData.tags || [],
+      acceptanceCriteria: processedData.acceptanceCriteria || [],
       feedback: processedData.feedback || [],
       updatedAt: new Date(),
       createdAt: feature?.createdAt || new Date(),
@@ -107,7 +154,7 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{feature ? "Edit Feature" : "Add New Feature"}</DialogTitle>
           <DialogDescription>
@@ -137,7 +184,53 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="userStory">User Story</Label>
+            <Textarea 
+              id="userStory"
+              value={formData.userStory || ""}
+              onChange={(e) => handleChange("userStory", e.target.value)}
+              placeholder="As a [type of user], I want [goal] so that [benefit]"
+              rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Acceptance Criteria</Label>
+            <div className="flex gap-2">
+              <Input
+                value={currentCriterion}
+                onChange={(e) => setCurrentCriterion(e.target.value)}
+                placeholder="Add acceptance criterion"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addCriterion();
+                  }
+                }}
+              />
+              <Button type="button" onClick={addCriterion}>Add</Button>
+            </div>
+            {formData.acceptanceCriteria && formData.acceptanceCriteria.length > 0 && (
+              <div className="mt-2 space-y-2">
+                {formData.acceptanceCriteria.map((criterion, index) => (
+                  <div key={index} className="flex items-center justify-between bg-muted p-2 rounded-md">
+                    <span className="text-sm">{criterion}</span>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => removeCriterion(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select 
@@ -177,7 +270,7 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="effort">Effort (1-10)</Label>
               <Input 
@@ -202,11 +295,11 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="epicId">Epic</Label>
               <Select 
-                value={formData.epicId || ""} 
+                value={formData.epicId || "none"} 
                 onValueChange={(value) => handleChange("epicId", value)}
               >
                 <SelectTrigger>
@@ -224,7 +317,7 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
             <div className="space-y-2">
               <Label htmlFor="releaseId">Release</Label>
               <Select 
-                value={formData.releaseId || ""} 
+                value={formData.releaseId || "none"} 
                 onValueChange={(value) => handleChange("releaseId", value)}
               >
                 <SelectTrigger>
@@ -238,6 +331,42 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Tags</Label>
+            <div className="flex gap-2">
+              <Input
+                value={currentTag}
+                onChange={(e) => setCurrentTag(e.target.value)}
+                placeholder="Add a tag"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTag();
+                  }
+                }}
+              />
+              <Button type="button" onClick={addTag}>Add</Button>
+            </div>
+            {formData.tags && formData.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {formData.tags.map(tag => (
+                  <Badge key={tag} variant="secondary" className="flex items-center gap-1 pl-2 pr-1">
+                    {tag}
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-5 w-5 ml-1 hover:bg-muted"
+                      onClick={() => removeTag(tag)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
