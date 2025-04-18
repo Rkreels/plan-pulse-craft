@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { PageTitle } from "@/components/common/PageTitle";
 import { useAppContext } from "@/contexts/AppContext";
 import { User } from "@/types";
-import { Settings as SettingsIcon, Users, User as UserIcon, Upload, Mail } from "lucide-react";
+import { Settings as SettingsIcon, Users, Upload, Mail } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -78,7 +78,7 @@ const Settings = () => {
   };
 
   return (
-    <MainLayout>
+    <div className="w-full"> {/* Removed MainLayout wrapper since it's already in AppRoutes.tsx */}
       <PageTitle
         title="Settings"
         description="Manage your account and application settings"
@@ -307,7 +307,7 @@ const Settings = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </MainLayout>
+    </div>
   );
 };
 
