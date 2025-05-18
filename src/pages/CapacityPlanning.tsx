@@ -1,265 +1,394 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { PageTitle } from "@/components/common/PageTitle";
-import { useAppContext } from "@/contexts/AppContext";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Calendar, 
-  Plus, 
-  Users, 
-  CalendarDays,
-  RefreshCcw,
-  Download
-} from "lucide-react";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { useAppContext } from "@/contexts/AppContext";
+import { CalendarIcon, ChevronDown, Download, Filter, Plus, Search } from "lucide-react";
 
-// Example team members
-const teamMembers = [
-  { id: 'tm1', name: 'John Smith', role: 'Developer', capacity: 40, allocated: 32 },
-  { id: 'tm2', name: 'Emily Johnson', role: 'Designer', capacity: 40, allocated: 36 },
-  { id: 'tm3', name: 'Michael Brown', role: 'QA Engineer', capacity: 40, allocated: 26 },
-  { id: 'tm4', name: 'Sarah Davis', role: 'Developer', capacity: 40, allocated: 40 },
-  { id: 'tm5', name: 'David Wilson', role: 'Product Manager', capacity: 40, allocated: 38 },
+interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  capacity: number;
+  allocated: number;
+  image?: string;
+}
+
+interface Sprint {
+  id: string;
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  status: "planning" | "active" | "completed";
+  team: string[];
+  storyPoints: number;
+  completedPoints: number;
+}
+
+// Mock data
+const initialTeamMembers: TeamMember[] = [
+  {
+    id: "tm1",
+    name: "Alex Johnson",
+    role: "Frontend Developer",
+    capacity: 40,
+    allocated: 32,
+    image: "https://i.pravatar.cc/150?u=tm1"
+  },
+  {
+    id: "tm2",
+    name: "Sarah Miller",
+    role: "Backend Developer",
+    capacity: 40,
+    allocated: 40,
+    image: "https://i.pravatar.cc/150?u=tm2"
+  },
+  {
+    id: "tm3",
+    name: "David Chen",
+    role: "UX Designer",
+    capacity: 35,
+    allocated: 28,
+    image: "https://i.pravatar.cc/150?u=tm3"
+  },
+  {
+    id: "tm4",
+    name: "Mia Williams",
+    role: "Product Manager",
+    capacity: 30,
+    allocated: 30,
+    image: "https://i.pravatar.cc/150?u=tm4"
+  },
+  {
+    id: "tm5",
+    name: "Ryan Taylor",
+    role: "QA Engineer",
+    capacity: 40,
+    allocated: 25,
+    image: "https://i.pravatar.cc/150?u=tm5"
+  },
 ];
 
-// Example sprints
-const sprints = [
-  { id: 'sp1', name: 'Sprint 1', startDate: '2025-05-01', endDate: '2025-05-14', capacity: 180, allocated: 165, status: 'completed' },
-  { id: 'sp2', name: 'Sprint 2', startDate: '2025-05-15', endDate: '2025-05-28', capacity: 180, allocated: 170, status: 'in_progress' },
-  { id: 'sp3', name: 'Sprint 3', startDate: '2025-05-29', endDate: '2025-06-11', capacity: 180, allocated: 120, status: 'planned' },
-  { id: 'sp4', name: 'Sprint 4', startDate: '2025-06-12', endDate: '2025-06-25', capacity: 180, allocated: 90, status: 'planned' },
+const initialSprints: Sprint[] = [
+  {
+    id: "sp1",
+    name: "Sprint 24",
+    startDate: new Date(2025, 4, 1),
+    endDate: new Date(2025, 4, 14),
+    status: "active",
+    team: ["tm1", "tm2", "tm3"],
+    storyPoints: 45,
+    completedPoints: 20
+  },
+  {
+    id: "sp2",
+    name: "Sprint 23",
+    startDate: new Date(2025, 3, 17),
+    endDate: new Date(2025, 3, 30),
+    status: "completed",
+    team: ["tm1", "tm2", "tm4", "tm5"],
+    storyPoints: 50,
+    completedPoints: 50
+  },
+  {
+    id: "sp3",
+    name: "Sprint 25",
+    startDate: new Date(2025, 4, 15),
+    endDate: new Date(2025, 4, 28),
+    status: "planning",
+    team: ["tm2", "tm3", "tm5"],
+    storyPoints: 40,
+    completedPoints: 0
+  },
 ];
 
 const CapacityPlanning = () => {
   const { features } = useAppContext();
-  const [selectedTimeframe, setSelectedTimeframe] = useState("sprint");
-  const [isAddingResource, setIsAddingResource] = useState(false);
-  const [currentSprint, setCurrentSprint] = useState("sp2");
-  const [newResourceName, setNewResourceName] = useState("");
-  const [newResourceRole, setNewResourceRole] = useState("Developer");
-  
-  const totalCapacity = teamMembers.reduce((sum, member) => sum + member.capacity, 0);
-  const totalAllocated = teamMembers.reduce((sum, member) => sum + member.allocated, 0);
-  const utilizationRate = Math.round((totalAllocated / totalCapacity) * 100);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(initialTeamMembers);
+  const [sprints, setSprints] = useState<Sprint[]>(initialSprints);
+  const [view, setView] = useState("team");
+  const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
+  const [newMember, setNewMember] = useState<Partial<TeamMember>>({
+    name: "",
+    role: "",
+    capacity: 40,
+    allocated: 0
+  });
+  const [isAddSprintDialogOpen, setIsAddSprintDialogOpen] = useState(false);
+  const [newSprint, setNewSprint] = useState<Partial<Sprint>>({
+    name: "",
+    startDate: new Date(),
+    endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 2 weeks from now
+    status: "planning",
+    team: [],
+    storyPoints: 0,
+    completedPoints: 0
+  });
 
-  const handleAddResource = () => {
-    if (!newResourceName.trim()) {
-      toast.error("Resource name is required");
-      return;
-    }
+  const handleAddMember = () => {
+    if (!newMember.name || !newMember.role) return;
     
-    toast.success(`Resource "${newResourceName}" added successfully`);
-    setIsAddingResource(false);
-    setNewResourceName("");
+    const member: TeamMember = {
+      id: `tm${Date.now()}`,
+      name: newMember.name,
+      role: newMember.role,
+      capacity: newMember.capacity || 40,
+      allocated: newMember.allocated || 0,
+      image: `https://i.pravatar.cc/150?u=${Date.now()}`
+    };
+    
+    setTeamMembers(prev => [...prev, member]);
+    setNewMember({
+      name: "",
+      role: "",
+      capacity: 40,
+      allocated: 0
+    });
+    setIsAddMemberDialogOpen(false);
   };
 
-  const handleBalanceWorkload = () => {
-    toast.success("Workload balanced across team members");
+  const handleAddSprint = () => {
+    if (!newSprint.name || !newSprint.startDate || !newSprint.endDate) return;
+    
+    const sprint: Sprint = {
+      id: `sp${Date.now()}`,
+      name: newSprint.name || "",
+      startDate: newSprint.startDate || new Date(),
+      endDate: newSprint.endDate || new Date(),
+      status: newSprint.status as "planning" | "active" | "completed" || "planning",
+      team: newSprint.team || [],
+      storyPoints: newSprint.storyPoints || 0,
+      completedPoints: newSprint.completedPoints || 0
+    };
+    
+    setSprints(prev => [...prev, sprint]);
+    setNewSprint({
+      name: "",
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      status: "planning",
+      team: [],
+      storyPoints: 0,
+      completedPoints: 0
+    });
+    setIsAddSprintDialogOpen(false);
   };
 
   return (
-    <>
-      <PageTitle
+    <div>
+      <PageTitle 
         title="Capacity Planning"
-        description="Manage team resources and workloads"
+        description="Manage team capacity and sprint planning"
         action={{
-          label: "Export Plan",
-          icon: <Download className="h-4 w-4" />,
-          onClick: () => toast.success("Capacity plan exported")
+          label: view === "team" ? "Add Team Member" : "Add Sprint",
+          icon: <Plus className="h-4 w-4" />,
+          onClick: () => view === "team" ? setIsAddMemberDialogOpen(true) : setIsAddSprintDialogOpen(true)
         }}
       />
-
-      <div className="space-y-6">
-        <div className="flex flex-wrap justify-between items-center gap-4">
-          <Tabs value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
-            <TabsList>
-              <TabsTrigger value="sprint">Sprints</TabsTrigger>
-              <TabsTrigger value="month">Monthly</TabsTrigger>
-              <TabsTrigger value="quarter">Quarterly</TabsTrigger>
-            </TabsList>
-          </Tabs>
+      
+      <Tabs value={view} onValueChange={setView} className="w-full">
+        <div className="flex justify-between mb-6">
+          <TabsList>
+            <TabsTrigger value="team">Team Capacity</TabsTrigger>
+            <TabsTrigger value="sprints">Sprint Planning</TabsTrigger>
+          </TabsList>
           
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setIsAddingResource(true)}>
-              <Users className="h-4 w-4 mr-2" />
-              Add Resource
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search..." 
+                className="pl-8 w-[200px]" 
+              />
+            </div>
+            <Button variant="outline" size="icon">
+              <Filter className="h-4 w-4" />
             </Button>
-            <Button variant="outline" onClick={handleBalanceWorkload}>
-              <RefreshCcw className="h-4 w-4 mr-2" />
-              Balance Workload
+            <Button variant="outline" size="icon">
+              <Download className="h-4 w-4" />
             </Button>
           </div>
         </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Team Capacity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalCapacity} hours/week</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Total available hours across {teamMembers.length} team members
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Allocated</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalAllocated} hours/week</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Hours allocated to tasks and features
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Utilization Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{utilizationRate}%</div>
-              <Progress value={utilizationRate} className="h-2 mt-2" />
-              <p className="text-xs text-muted-foreground mt-1">
-                {utilizationRate > 85 ? 'High utilization' : utilizationRate > 70 ? 'Optimal utilization' : 'Low utilization'}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content */}
-        <TabsContent value="sprint" className="mt-0">
+        
+        {/* Team Capacity View */}
+        <TabsContent value="team" className="space-y-6">
           <Card>
             <CardHeader>
-              <div className="flex flex-wrap justify-between items-center">
-                <CardTitle>Sprint Planning</CardTitle>
-                <Select value={currentSprint} onValueChange={setCurrentSprint}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select sprint" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sprints.map(sprint => (
-                      <SelectItem key={sprint.id} value={sprint.id}>
-                        {sprint.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <CardDescription>
-                {sprints.find(s => s.id === currentSprint)?.startDate} to {sprints.find(s => s.id === currentSprint)?.endDate}
-              </CardDescription>
+              <CardTitle>Team Capacity Overview</CardTitle>
+              <CardDescription>Current capacity allocation for team members</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Team Member</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Available Hours</TableHead>
-                    <TableHead>Allocated Hours</TableHead>
-                    <TableHead>Utilization</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {teamMembers.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell className="font-medium">{member.name}</TableCell>
-                      <TableCell>{member.role}</TableCell>
-                      <TableCell>{member.capacity} hrs</TableCell>
-                      <TableCell>{member.allocated} hrs</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Progress value={(member.allocated / member.capacity) * 100} className="h-2 w-[100px]" />
-                          <span>{Math.round((member.allocated / member.capacity) * 100)}%</span>
+              <div className="space-y-6">
+                {teamMembers.map(member => (
+                  <div key={member.id} className="flex items-center space-x-4">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted">
+                      {member.image ? (
+                        <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary-foreground">
+                          {member.name.charAt(0)}
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between mb-1">
+                        <div>
+                          <h4 className="font-medium">{member.name}</h4>
+                          <p className="text-sm text-muted-foreground">{member.role}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium">
+                            {member.allocated}/{member.capacity} hours
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {Math.round(member.allocated / member.capacity * 100)}% allocated
+                          </div>
+                        </div>
+                      </div>
+                      <Progress 
+                        value={member.allocated / member.capacity * 100} 
+                        className={`h-2 ${
+                          member.allocated / member.capacity > 0.9 ? 'bg-red-100' : 
+                          member.allocated / member.capacity > 0.75 ? 'bg-yellow-100' : 
+                          'bg-green-100'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Sprint Planning View */}
+        <TabsContent value="sprints" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="bg-yellow-50 dark:bg-yellow-900/20">
+                <CardTitle>Planning</CardTitle>
+                <CardDescription>{sprints.filter(s => s.status === 'planning').length} sprints</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {sprints
+                  .filter(sprint => sprint.status === 'planning')
+                  .map(sprint => (
+                    <div key={sprint.id} className="p-4 border-b last:border-0">
+                      <h4 className="font-medium">{sprint.name}</h4>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {format(new Date(sprint.startDate), 'MMM d')} - {format(new Date(sprint.endDate), 'MMM d, yyyy')}
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <div className="text-sm">
+                          {sprint.storyPoints} story points
+                        </div>
+                        <div className="flex -space-x-2">
+                          {sprint.team.slice(0, 3).map(teamId => {
+                            const member = teamMembers.find(m => m.id === teamId);
+                            return (
+                              <div key={teamId} className="w-6 h-6 rounded-full overflow-hidden bg-muted border-2 border-background">
+                                {member?.image ? (
+                                  <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full bg-primary/20 flex items-center justify-center text-xs">
+                                    {member?.name.charAt(0)}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                          {sprint.team.length > 3 && (
+                            <div className="w-6 h-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs">
+                              +{sprint.team.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="bg-blue-50 dark:bg-blue-900/20">
+                <CardTitle>Active</CardTitle>
+                <CardDescription>{sprints.filter(s => s.status === 'active').length} sprints</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {sprints
+                  .filter(sprint => sprint.status === 'active')
+                  .map(sprint => (
+                    <div key={sprint.id} className="p-4 border-b last:border-0">
+                      <h4 className="font-medium">{sprint.name}</h4>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {format(new Date(sprint.startDate), 'MMM d')} - {format(new Date(sprint.endDate), 'MMM d, yyyy')}
+                      </div>
+                      <div className="mt-2">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>Progress</span>
+                          <span>{Math.round(sprint.completedPoints / sprint.storyPoints * 100)}%</span>
+                        </div>
+                        <Progress value={sprint.completedPoints / sprint.storyPoints * 100} className="h-2" />
+                      </div>
+                    </div>
+                  ))}
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="bg-green-50 dark:bg-green-900/20">
+                <CardTitle>Completed</CardTitle>
+                <CardDescription>{sprints.filter(s => s.status === 'completed').length} sprints</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {sprints
+                  .filter(sprint => sprint.status === 'completed')
+                  .map(sprint => (
+                    <div key={sprint.id} className="p-4 border-b last:border-0">
+                      <h4 className="font-medium">{sprint.name}</h4>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {format(new Date(sprint.startDate), 'MMM d')} - {format(new Date(sprint.endDate), 'MMM d, yyyy')}
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <div className="text-sm">
+                          {sprint.storyPoints} story points completed
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
-
-        <TabsContent value="month" className="mt-0">
-          <Card>
-            <CardHeader>
-              <CardTitle>Monthly Capacity</CardTitle>
-              <CardDescription>May 2025</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center h-[300px]">
-                <CalendarDays className="h-16 w-16 text-muted-foreground" />
-                <p className="ml-4 text-muted-foreground">
-                  Monthly capacity view shows team availability and allocation across the entire month
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="quarter" className="mt-0">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quarterly Capacity</CardTitle>
-              <CardDescription>Q2 2025 (Apr-Jun)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center h-[300px]">
-                <Calendar className="h-16 w-16 text-muted-foreground" />
-                <p className="ml-4 text-muted-foreground">
-                  Quarterly capacity view shows team availability and allocation across the entire quarter
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </div>
-
-      {/* Add Resource Dialog */}
-      <Dialog open={isAddingResource} onOpenChange={setIsAddingResource}>
+      </Tabs>
+      
+      {/* Add Team Member Dialog */}
+      <Dialog open={isAddMemberDialogOpen} onOpenChange={setIsAddMemberDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Team Member</DialogTitle>
             <DialogDescription>
-              Add a new team member to the capacity planning
+              Add a new team member to manage capacity planning.
             </DialogDescription>
           </DialogHeader>
+          
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
@@ -267,55 +396,144 @@ const CapacityPlanning = () => {
               </Label>
               <Input
                 id="name"
+                value={newMember.name}
+                onChange={(e) => setNewMember({...newMember, name: e.target.value})}
                 className="col-span-3"
-                value={newResourceName}
-                onChange={(e) => setNewResourceName(e.target.value)}
-                placeholder="John Smith"
               />
             </div>
+            
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="role" className="text-right">
                 Role
               </Label>
-              <Select
-                value={newResourceRole}
-                onValueChange={setNewResourceRole}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Developer">Developer</SelectItem>
-                  <SelectItem value="Designer">Designer</SelectItem>
-                  <SelectItem value="QA Engineer">QA Engineer</SelectItem>
-                  <SelectItem value="Product Manager">Product Manager</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                id="role"
+                value={newMember.role}
+                onChange={(e) => setNewMember({...newMember, role: e.target.value})}
+                className="col-span-3"
+              />
             </div>
+            
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="capacity" className="text-right">
-                Weekly Capacity
+                Capacity (hours)
               </Label>
               <Input
                 id="capacity"
-                className="col-span-3"
                 type="number"
-                defaultValue={40}
-                placeholder="Hours per week"
+                value={newMember.capacity}
+                onChange={(e) => setNewMember({...newMember, capacity: Number(e.target.value)})}
+                className="col-span-3"
               />
             </div>
           </div>
+          
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddingResource(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddResource}>
-              Add Team Member
-            </Button>
+            <Button variant="outline" onClick={() => setIsAddMemberDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddMember}>Add Team Member</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+      
+      {/* Add Sprint Dialog */}
+      <Dialog open={isAddSprintDialogOpen} onOpenChange={setIsAddSprintDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add Sprint</DialogTitle>
+            <DialogDescription>
+              Create a new sprint for your team.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="sprintName" className="text-right">
+                Sprint Name
+              </Label>
+              <Input
+                id="sprintName"
+                value={newSprint.name}
+                onChange={(e) => setNewSprint({...newSprint, name: e.target.value})}
+                className="col-span-3"
+                placeholder="e.g., Sprint 26"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="startDate" className="text-right">
+                Start Date
+              </Label>
+              <div className="col-span-3">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {newSprint.startDate ? format(newSprint.startDate, 'PPP') : "Select a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={newSprint.startDate}
+                      onSelect={(date) => date && setNewSprint({...newSprint, startDate: date})}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="endDate" className="text-right">
+                End Date
+              </Label>
+              <div className="col-span-3">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {newSprint.endDate ? format(newSprint.endDate, 'PPP') : "Select a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={newSprint.endDate}
+                      onSelect={(date) => date && setNewSprint({...newSprint, endDate: date})}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="storyPoints" className="text-right">
+                Story Points
+              </Label>
+              <Input
+                id="storyPoints"
+                type="number"
+                value={newSprint.storyPoints}
+                onChange={(e) => setNewSprint({...newSprint, storyPoints: Number(e.target.value)})}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddSprintDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddSprint}>Create Sprint</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 
