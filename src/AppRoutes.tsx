@@ -18,6 +18,10 @@ import Tasks from "./pages/Tasks";
 import Analytics from "./pages/Analytics";
 import Documentation from "./pages/Documentation";
 import Requirements from "./pages/Requirements";
+import CapacityPlanning from "./pages/CapacityPlanning";
+import Dashboards from "./pages/Dashboards";
+import Integrations from "./pages/Integrations";
+import Permissions from "./pages/Permissions";
 
 // Auth protection component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -182,6 +186,46 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <MainLayout>
               <Requirements />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/capacity-planning" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CapacityPlanning />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/dashboards" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Dashboards />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/integrations" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Integrations />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/permissions" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Permissions />
             </MainLayout>
           </ProtectedRoute>
         } 
