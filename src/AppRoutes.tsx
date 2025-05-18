@@ -22,6 +22,7 @@ import CapacityPlanning from "./pages/CapacityPlanning";
 import Dashboards from "./pages/Dashboards";
 import Integrations from "./pages/Integrations";
 import Permissions from "./pages/Permissions";
+import Team from "./pages/Team";
 
 // Auth protection component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -146,6 +147,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <MainLayout>
               <Settings />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/team" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Team />
             </MainLayout>
           </ProtectedRoute>
         } 
