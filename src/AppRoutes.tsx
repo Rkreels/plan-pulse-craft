@@ -15,6 +15,9 @@ import Releases from "./pages/Releases";
 import Roadmap from "./pages/Roadmap";
 import Settings from "./pages/Settings";
 import Tasks from "./pages/Tasks";
+import Analytics from "./pages/Analytics";
+import Documentation from "./pages/Documentation";
+import Requirements from "./pages/Requirements";
 
 // Auth protection component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -149,6 +152,36 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <MainLayout>
               <Tasks />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/analytics" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Analytics />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/documentation" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Documentation />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/requirements" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Requirements />
             </MainLayout>
           </ProtectedRoute>
         } 

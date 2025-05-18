@@ -19,7 +19,11 @@ import {
   LightbulbIcon, 
   MessagesSquare, 
   Settings, 
-  Tags 
+  Tags,
+  FileText,
+  Users,
+  LineChart,
+  GitBranch
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
@@ -80,6 +84,18 @@ export function Sidebar() {
       icon: CheckSquare,
       roles: ["admin", "product_manager", "developer"]
     },
+    {
+      title: "Analytics",
+      path: "/analytics",
+      icon: LineChart,
+      roles: ["admin", "product_manager", "executive"]
+    },
+    {
+      title: "Documentation",
+      path: "/documentation",
+      icon: FileText,
+      roles: ["admin", "product_manager", "executive", "developer"]
+    },
   ];
 
   const isActive = (path: string) => {
@@ -120,6 +136,37 @@ export function Sidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2"
+                    onClick={() => navigate("/team")}
+                  >
+                    <Users className="h-4 w-4" />
+                    <span>Team</span>
+                  </Button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2"
+                    onClick={() => navigate("/integrations")}
+                  >
+                    <GitBranch className="h-4 w-4" />
+                    <span>Integrations</span>
+                  </Button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

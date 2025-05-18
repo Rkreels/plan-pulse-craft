@@ -1,4 +1,3 @@
-
 // User and Authentication Types
 export interface User {
   id: string;
@@ -141,4 +140,19 @@ export interface ViewFilter {
   field: string;
   operator: "equals" | "contains" | "greater_than" | "less_than";
   value: string | number | boolean | Date;
+}
+
+export interface Requirement {
+  id: string;
+  title: string;
+  description?: string;
+  priority: 'high' | 'medium' | 'low';
+  status: 'draft' | 'in_progress' | 'review' | 'verified';
+  type: 'functional' | 'non_functional' | 'technical' | 'business';
+  featureId: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  version?: number;
+  acceptanceCriteria?: { text: string; met: boolean }[];
 }
