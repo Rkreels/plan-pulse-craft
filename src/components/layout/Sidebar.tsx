@@ -23,7 +23,15 @@ import {
   FileText,
   Users,
   LineChart,
-  GitBranch
+  GitBranch,
+  // Additional icons for new features
+  PieChart,
+  GitMerge,
+  Flag,
+  TrendingUp,
+  Activity,
+  BarChart,
+  Target
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
@@ -41,6 +49,12 @@ export function Sidebar() {
       path: "/",
       icon: LayoutDashboard,
       roles: ["admin", "product_manager", "executive", "developer", "customer"]
+    },
+    {
+      title: "Strategic Planning",
+      path: "/strategy",
+      icon: Flag,
+      roles: ["admin", "product_manager", "executive"]
     },
     {
       title: "Roadmap",
@@ -79,10 +93,28 @@ export function Sidebar() {
       roles: ["admin", "product_manager", "executive", "developer", "customer"]
     },
     {
-      title: "Tasks",
-      path: "/tasks",
-      icon: CheckSquare,
+      title: "Customer Portal",
+      path: "/customer-portal",
+      icon: Users,
+      roles: ["admin", "product_manager", "executive"]
+    },
+    {
+      title: "Competitor Analysis",
+      path: "/competitor-analysis",
+      icon: Target,
+      roles: ["admin", "product_manager", "executive"]
+    },
+    {
+      title: "Capacity Planning",
+      path: "/capacity-planning",
+      icon: Activity,
       roles: ["admin", "product_manager", "developer"]
+    },
+    {
+      title: "Reports",
+      path: "/reports",
+      icon: BarChart,
+      roles: ["admin", "product_manager", "executive"]
     },
     {
       title: "Analytics",
@@ -91,10 +123,37 @@ export function Sidebar() {
       roles: ["admin", "product_manager", "executive"]
     },
     {
+      title: "Dashboards",
+      path: "/dashboards",
+      icon: PieChart,
+      roles: ["admin", "product_manager", "executive"]
+    },
+    {
       title: "Documentation",
       path: "/documentation",
       icon: FileText,
       roles: ["admin", "product_manager", "executive", "developer"]
+    },
+  ];
+
+  const workspaceItems = [
+    {
+      title: "Team",
+      path: "/team",
+      icon: Users,
+      roles: ["admin", "product_manager", "executive", "developer"]
+    },
+    {
+      title: "Integrations",
+      path: "/integrations",
+      icon: GitBranch,
+      roles: ["admin", "product_manager", "developer"]
+    },
+    {
+      title: "Permissions",
+      path: "/permissions",
+      icon: GitMerge,
+      roles: ["admin", "product_manager"]
     },
   ];
 
@@ -109,6 +168,10 @@ export function Sidebar() {
 
   // Filter menu items based on user role
   const filteredMenuItems = menuItems.filter(item => 
+    currentUser && item.roles.includes(currentUser.role)
+  );
+
+  const filteredWorkspaceItems = workspaceItems.filter(item => 
     currentUser && item.roles.includes(currentUser.role)
   );
 
@@ -143,30 +206,20 @@ export function Sidebar() {
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-2"
-                    onClick={() => navigate("/team")}
-                  >
-                    <Users className="h-4 w-4" />
-                    <span>Team</span>
-                  </Button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-2"
-                    onClick={() => navigate("/integrations")}
-                  >
-                    <GitBranch className="h-4 w-4" />
-                    <span>Integrations</span>
-                  </Button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {filteredWorkspaceItems.map((item) => (
+                <SidebarMenuItem key={item.path}>
+                  <SidebarMenuButton asChild>
+                    <Button
+                      variant={isActive(item.path) ? "secondary" : "ghost"}
+                      className="w-full justify-start gap-2"
+                      onClick={() => navigate(item.path)}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

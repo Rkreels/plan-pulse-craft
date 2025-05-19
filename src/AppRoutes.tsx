@@ -23,6 +23,10 @@ import Dashboards from "./pages/Dashboards";
 import Integrations from "./pages/Integrations";
 import Permissions from "./pages/Permissions";
 import Team from "./pages/Team";
+import Strategy from "./pages/Strategy";
+import Reports from "./pages/Reports";
+import CompetitorAnalysis from "./pages/CompetitorAnalysis";
+import CustomerPortal from "./pages/CustomerPortal";
 
 // Auth protection component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -41,6 +45,8 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      
+      {/* Dashboard */}
       <Route 
         path="/" 
         element={
@@ -51,6 +57,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Features */}
       <Route 
         path="/features" 
         element={
@@ -71,6 +79,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Feedback */}
       <Route 
         path="/feedback" 
         element={
@@ -81,6 +91,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Goals */}
       <Route 
         path="/goals" 
         element={
@@ -101,6 +113,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Ideas */}
       <Route 
         path="/ideas" 
         element={
@@ -111,6 +125,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Releases */}
       <Route 
         path="/releases" 
         element={
@@ -131,6 +147,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Roadmap */}
       <Route 
         path="/roadmap" 
         element={
@@ -141,6 +159,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Settings */}
       <Route 
         path="/settings" 
         element={
@@ -151,6 +171,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Team */}
       <Route 
         path="/team" 
         element={
@@ -161,6 +183,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Tasks (may remove later) */}
       <Route 
         path="/tasks" 
         element={
@@ -171,6 +195,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Analytics */}
       <Route 
         path="/analytics" 
         element={
@@ -181,6 +207,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Documentation */}
       <Route 
         path="/documentation" 
         element={
@@ -191,6 +219,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Requirements */}
       <Route 
         path="/requirements" 
         element={
@@ -201,6 +231,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Capacity Planning */}
       <Route 
         path="/capacity-planning" 
         element={
@@ -211,6 +243,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Dashboards */}
       <Route 
         path="/dashboards" 
         element={
@@ -221,6 +255,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Integrations */}
       <Route 
         path="/integrations" 
         element={
@@ -231,6 +267,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Permissions */}
       <Route 
         path="/permissions" 
         element={
@@ -241,6 +279,58 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* New Routes for Advanced Features */}
+      
+      {/* Strategic Planning */}
+      <Route 
+        path="/strategy" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Strategy />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Reports */}
+      <Route 
+        path="/reports" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Reports />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Competitor Analysis */}
+      <Route 
+        path="/competitor-analysis" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CompetitorAnalysis />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Customer Portal */}
+      <Route 
+        path="/customer-portal" 
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CustomerPortal />
+            </MainLayout>
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* 404 Not Found */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
