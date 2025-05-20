@@ -1,8 +1,27 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart3, CalendarDays, Goal, LightbulbIcon, Users } from "lucide-react";
+import { useState } from "react";
+import { useAppContext } from "@/contexts/AppContext";
+import { AddEditFeatureDialog } from "@/components/dialogs/AddEditFeatureDialog";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { addFeature } = useAppContext();
+  const navigate = useNavigate();
+
+  const handleAddFeatureIdea = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleSaveFeature = (feature) => {
+    addFeature({ ...feature, status: "idea" });
+    // Navigate to ideas page after adding a feature idea
+    navigate("/ideas");
+  };
+
   return (
     <div className="space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -13,7 +32,7 @@ const Index = () => {
             </p>
           </div>
           <div>
-            <Button className="flex gap-2">
+            <Button className="flex gap-2" onClick={handleAddFeatureIdea}>
               <LightbulbIcon className="h-4 w-4" />
               New Feature Idea
             </Button>
@@ -142,6 +161,12 @@ const Index = () => {
             </CardContent>
           </Card>
         </div>
+
+        <AddEditFeatureDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          onSave={handleSaveFeature}
+        />
       </div>
   );
 };

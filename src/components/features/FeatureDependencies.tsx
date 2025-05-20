@@ -20,9 +20,9 @@ export const FeatureDependencies = () => {
       id: uuidv4(),
       title: "New Dependency Feature",
       description: "This is a demo dependency feature",
-      status: "not_started",
+      status: "not_started", // Ensure this is a valid status from the Feature type
       priority: "medium",
-      progress: 0, // Added progress
+      progress: 0,
       effort: 5,
       value: 7,
       tags: ["dependency", "demo"],
@@ -44,11 +44,11 @@ export const FeatureDependencies = () => {
       id: "dep1",
       title: "API Integration",
       description: "Integrate with third-party payment API",
-      status: "in_progress",
-      priority: "high",
+      status: "in_progress" as Feature["status"],
+      priority: "high" as Feature["priority"],
       effort: 8,
       value: 9,
-      progress: 50, // Added progress
+      progress: 50,
       tags: ["backend", "api"],
       votes: 12,
       createdAt: new Date(),
@@ -61,11 +61,11 @@ export const FeatureDependencies = () => {
       id: "dep2",
       title: "User Authentication",
       description: "Implement OAuth 2.0 authentication",
-      status: "planned",
-      priority: "medium",
+      status: "planned" as Feature["status"],
+      priority: "medium" as Feature["priority"],
       effort: 6,
       value: 8,
-      progress: 0, // Added progress
+      progress: 0,
       tags: ["security", "backend"],
       votes: 8,
       createdAt: new Date(),
@@ -78,11 +78,11 @@ export const FeatureDependencies = () => {
       id: "dep3",
       title: "Frontend Validation",
       description: "Add form validation on the client side",
-      status: "review",
-      priority: "medium",
+      status: "review" as Feature["status"],
+      priority: "medium" as Feature["priority"],
       effort: 4,
       value: 6,
-      progress: 90, // Added progress
+      progress: 90,
       tags: ["frontend", "ux"],
       votes: 5,
       createdAt: new Date(),
@@ -95,11 +95,11 @@ export const FeatureDependencies = () => {
       id: "dep4",
       title: "Admin Dashboard",
       description: "Create admin dashboard for user management",
-      status: "backlog",
-      priority: "critical",
+      status: "backlog" as Feature["status"],
+      priority: "critical" as Feature["priority"],
       effort: 10,
       value: 10,
-      progress: 0, // Added progress
+      progress: 0,
       tags: ["admin", "dashboard"],
       votes: 15,
       createdAt: new Date(),
@@ -108,7 +108,7 @@ export const FeatureDependencies = () => {
       feedback: [],
       dependencies: []
     }
-  ];
+  ] as Feature[];
 
   return (
     <div className="space-y-6">
