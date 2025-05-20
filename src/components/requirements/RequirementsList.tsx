@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Search, MoreHorizontal, Filter, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Filter } from "lucide-react";
 import { RequirementItem } from "@/components/requirements/RequirementItem";
 import { toast } from "sonner";
 import { Requirement } from "@/types";
@@ -139,6 +139,16 @@ export const RequirementsList = () => {
     setRequirements(requirements.filter(req => !selectedRequirements.includes(req.id)));
     toast.success(`${selectedRequirements.length} requirements deleted`);
     setSelectedRequirements([]);
+  };
+
+  const handleEditRequirement = (id: string) => {
+    toast.success(`Edit requirement ${id}`);
+  };
+
+  const handleDeleteRequirement = (id: string) => {
+    setRequirements(requirements.filter(req => req.id !== id));
+    setSelectedRequirement(null);
+    toast.success(`Requirement deleted`);
   };
 
   const handleToggleSelect = (id: string) => {
@@ -268,8 +278,13 @@ export const RequirementsList = () => {
                           <DropdownMenuItem onClick={() => handleSelectRequirement(requirement)}>
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem onClick={() => handleEditRequirement(requirement.id)}>
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={() => handleDeleteRequirement(requirement.id)}
+                          >
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -286,7 +301,9 @@ export const RequirementsList = () => {
       {selectedRequirement && (
         <RequirementItem 
           requirement={selectedRequirement} 
-          onClose={() => setSelectedRequirement(null)} 
+          onClose={() => setSelectedRequirement(null)}
+          onEdit={handleEditRequirement}
+          onDelete={handleDeleteRequirement}
         />
       )}
     </div>

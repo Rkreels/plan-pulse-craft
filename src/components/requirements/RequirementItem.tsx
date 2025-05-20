@@ -24,17 +24,26 @@ import { useAppContext } from "@/contexts/AppContext";
 
 interface RequirementItemProps {
   requirement: Requirement;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onClose?: () => void;
 }
 
-export function RequirementItem({ requirement, onEdit, onDelete }: RequirementItemProps) {
+export function RequirementItem({ requirement, onEdit, onDelete, onClose }: RequirementItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { features } = useAppContext();
 
   // Find linked feature
   const linkedFeature = requirement.featureId ? 
     features.find(f => f.id === requirement.featureId) : undefined;
+
+  const handleEdit = () => {
+    if (onEdit) onEdit(requirement.id);
+  };
+
+  const handleDelete = () => {
+    if (onDelete) onDelete(requirement.id);
+  };
 
   return (
     <Card className={`mb-4 ${isExpanded ? 'border-primary' : ''}`}>
@@ -65,10 +74,15 @@ export function RequirementItem({ requirement, onEdit, onDelete }: RequirementIt
             </Badge>
           </div>
           <div className="flex items-center gap-1">
-            <Button size="sm" variant="ghost" onClick={() => onEdit(requirement.id)}>
+            {onClose && (
+              <Button size="sm" variant="outline" onClick={onClose}>
+                Close
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" onClick={handleEdit}>
               <Edit className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => onDelete(requirement.id)}>
+            <Button size="sm" variant="ghost" className="text-destructive" onClick={handleDelete}>
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
