@@ -1,334 +1,178 @@
 
-import { useState } from "react";
-import { Feature } from "@/types";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { ArrowRight, Plus, X } from "lucide-react";
+import { Feature } from "@/types";
+import { useAppContext } from "@/contexts/AppContext";
+import { ChevronRight, Plus } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 
-// Sample dependency data
-interface FeatureDependency {
-  id: string;
-  sourceFeatureId: string;
-  targetFeatureId: string;
-  type: "blocks" | "depends_on" | "required_for";
-}
-
-export const FeatureDependencies = ({ feature }: { feature: Feature }) => {
-  // In a real app, this would be fetched from API
-  const mockFeatures: Feature[] = [
-    {
-      id: "f1",
-      title: "Interactive Product Tour",
-      description: "Guide users through key features",
-      status: "in_progress",
-      priority: "high",
-      effort: 6,
-      value: 8,
-      tags: ["onboarding"],
-      votes: 24,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      workspaceId: "w1",
-      feedback: [],
-    },
-    {
-      id: "f2",
-      title: "Personalized Activity Feed",
-      description: "Show users relevant updates",
-      status: "planned",
+export const FeatureDependencies = () => {
+  const { features, addFeature, updateFeature } = useAppContext();
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
+  
+  // This is a simplified version for demo purposes.
+  // In a real application, more complex logic would handle actual dependencies.
+  
+  const createDemoFeature = () => {
+    const newFeature: Feature = {
+      id: uuidv4(),
+      title: "New Dependency Feature",
+      description: "This is a demo dependency feature",
+      status: "not_started",
       priority: "medium",
-      effort: 7,
+      progress: 0, // Added progress
+      effort: 5,
       value: 7,
-      tags: ["engagement"],
-      votes: 18,
+      tags: ["dependency", "demo"],
+      votes: 0,
+      feedback: [],
       createdAt: new Date(),
       updatedAt: new Date(),
       workspaceId: "w1",
-      feedback: [],
-    },
-    {
-      id: "f5",
-      title: "Contextual Help System",
-      description: "Provide contextual help",
-      status: "review",
-      priority: "medium",
-      effort: 6,
-      value: 7,
-      tags: ["support"],
-      votes: 9,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      workspaceId: "w1",
-      feedback: [],
-    },
-    {
-      id: "f7",
-      title: "SAML Single Sign-On",
-      description: "Enterprise SSO integration",
-      status: "backlog",
-      priority: "critical",
-      effort: 9,
-      value: 10,
-      tags: ["security"],
-      votes: 20,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      workspaceId: "w1",
-      feedback: [],
-    },
-  ];
-
-  const [dependencies, setDependencies] = useState<FeatureDependency[]>([
+      dependencies: [],
+      assignedTo: []
+    };
+    
+    addFeature(newFeature);
+  };
+  
+  // Example features for the demo
+  const demoFeatures = [
     {
       id: "dep1",
-      sourceFeatureId: feature.id,
-      targetFeatureId: "f5",
-      type: "depends_on",
+      title: "API Integration",
+      description: "Integrate with third-party payment API",
+      status: "in_progress",
+      priority: "high",
+      effort: 8,
+      value: 9,
+      progress: 50, // Added progress
+      tags: ["backend", "api"],
+      votes: 12,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      workspaceId: "w1",
+      feedback: [],
+      dependencies: []
     },
     {
       id: "dep2",
-      sourceFeatureId: feature.id,
-      targetFeatureId: "f7",
-      type: "depends_on",
+      title: "User Authentication",
+      description: "Implement OAuth 2.0 authentication",
+      status: "planned",
+      priority: "medium",
+      effort: 6,
+      value: 8,
+      progress: 0, // Added progress
+      tags: ["security", "backend"],
+      votes: 8,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      workspaceId: "w1",
+      feedback: [],
+      dependencies: []
     },
     {
       id: "dep3",
-      sourceFeatureId: "f2",
-      targetFeatureId: feature.id,
-      type: "blocks",
+      title: "Frontend Validation",
+      description: "Add form validation on the client side",
+      status: "review",
+      priority: "medium",
+      effort: 4,
+      value: 6,
+      progress: 90, // Added progress
+      tags: ["frontend", "ux"],
+      votes: 5,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      workspaceId: "w1",
+      feedback: [],
+      dependencies: []
     },
-  ]);
-
-  const getFeatureById = (id: string) => {
-    return mockFeatures.find((f) => f.id === id) || null;
-  };
-
-  const handleAddDependency = () => {
-    toast.success("Add dependency dialog would open here");
-  };
-
-  const handleRemoveDependency = (dependencyId: string) => {
-    setDependencies(dependencies.filter(dep => dep.id !== dependencyId));
-    toast.success("Dependency removed");
-  };
-
-  // Dependencies where this feature depends on other features
-  const dependsOn = dependencies.filter(
-    (dep) => dep.sourceFeatureId === feature.id && dep.type === "depends_on"
-  );
-
-  // Dependencies where other features depend on this feature
-  const requiredBy = dependencies.filter(
-    (dep) => dep.targetFeatureId === feature.id
-  );
-
-  // Features that this feature blocks
-  const blocks = dependencies.filter(
-    (dep) => dep.sourceFeatureId === feature.id && dep.type === "blocks"
-  );
+    {
+      id: "dep4",
+      title: "Admin Dashboard",
+      description: "Create admin dashboard for user management",
+      status: "backlog",
+      priority: "critical",
+      effort: 10,
+      value: 10,
+      progress: 0, // Added progress
+      tags: ["admin", "dashboard"],
+      votes: 15,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      workspaceId: "w1",
+      feedback: [],
+      dependencies: []
+    }
+  ];
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle>Feature Dependencies</CardTitle>
-            <CardDescription>
-              Manage relationships between this feature and others
-            </CardDescription>
-          </div>
-          <Button onClick={handleAddDependency}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Dependency
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {/* This feature depends on */}
-          <div>
-            <h3 className="text-lg font-medium mb-2">This feature depends on:</h3>
-            {dependsOn.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Feature</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dependsOn.map((dep) => {
-                    const targetFeature = getFeatureById(dep.targetFeatureId);
-                    if (!targetFeature) return null;
-
-                    return (
-                      <TableRow key={dep.id}>
-                        <TableCell>{targetFeature.title}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              targetFeature.status === "completed"
-                                ? "default"
-                                : "outline"
-                            }
-                          >
-                            {targetFeature.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">Depends On</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleRemoveDependency(dep.id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-sm text-muted-foreground py-2">
-                This feature doesn't depend on any other features.
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Feature Dependencies</h3>
+        <Button onClick={createDemoFeature}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Dependency
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {demoFeatures.map((feature) => (
+          <Card 
+            key={feature.id} 
+            className="cursor-pointer hover:border-primary transition-colors"
+            onClick={() => setSelectedFeature(feature)}
+          >
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-lg">{feature.title}</CardTitle>
+                <Badge>{feature.priority}</Badge>
               </div>
-            )}
-          </div>
-
-          {/* Features that depend on this feature */}
-          <div>
-            <h3 className="text-lg font-medium mb-2">Required by:</h3>
-            {requiredBy.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Feature</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {requiredBy.map((dep) => {
-                    const sourceFeature = getFeatureById(dep.sourceFeatureId);
-                    if (!sourceFeature) return null;
-
-                    return (
-                      <TableRow key={dep.id}>
-                        <TableCell>{sourceFeature.title}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              sourceFeature.status === "completed"
-                                ? "default"
-                                : "outline"
-                            }
-                          >
-                            {sourceFeature.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant="outline"
-                            className={dep.type === "blocks" ? "bg-red-100 text-red-800" : ""}
-                          >
-                            {dep.type === "blocks" ? "Blocked By" : "Required By"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleRemoveDependency(dep.id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-sm text-muted-foreground py-2">
-                No other features require this feature.
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-3">{feature.description}</p>
+              <div className="flex gap-2">
+                {feature.tags.map((tag) => (
+                  <Badge key={tag} variant="outline">
+                    {tag}
+                  </Badge>
+                ))}
               </div>
-            )}
-          </div>
-          
-          {/* Dependency Graph Visual */}
-          {(dependsOn.length > 0 || requiredBy.length > 0) && (
-            <div>
-              <h3 className="text-lg font-medium mb-2">Dependency Graph</h3>
-              <div className="p-4 border rounded-md bg-accent/30">
-                <div className="flex flex-col items-center">
-                  {dependsOn.length > 0 && (
-                    <div className="mb-4 w-full">
-                      {dependsOn.map(dep => {
-                        const targetFeature = getFeatureById(dep.targetFeatureId);
-                        if (!targetFeature) return null;
-                        
-                        return (
-                          <div key={dep.id} className="flex justify-center items-center gap-2 mb-2">
-                            <div className="border p-2 rounded-md bg-background w-40 text-center">
-                              {targetFeature.title}
-                            </div>
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  
-                  <div className="border-2 p-3 rounded-md bg-primary/10 border-primary w-48 text-center font-medium mb-4">
-                    {feature.title}
+              <div className="flex justify-end mt-4">
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      {features.length > 0 && (
+        <div className="mt-8 border-t pt-6">
+          <h3 className="text-lg font-medium mb-4">Project Features</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {features.slice(0, 4).map((feature) => (
+              <Card 
+                key={feature.id} 
+                className="cursor-pointer hover:border-primary transition-colors"
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-lg">{feature.title}</CardTitle>
+                    <Badge>{feature.priority}</Badge>
                   </div>
-                  
-                  {requiredBy.length > 0 && (
-                    <div className="w-full">
-                      {requiredBy.map(dep => {
-                        const sourceFeature = getFeatureById(dep.sourceFeatureId);
-                        if (!sourceFeature) return null;
-                        
-                        return (
-                          <div key={dep.id} className="flex justify-center items-center gap-2 mb-2">
-                            <ArrowRight className="h-4 w-4" />
-                            <div className="border p-2 rounded-md bg-background w-40 text-center">
-                              {sourceFeature.title}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 };

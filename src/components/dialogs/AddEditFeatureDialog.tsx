@@ -37,9 +37,10 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
     effort: 5,
     value: 5,
     tags: [],
-    assignedTo: currentUser?.id,
+    assignedTo: currentUser?.id ? [currentUser.id] : [], // Fix: make this an array
     votes: 0,
     feedback: [],
+    progress: 0, // Ensure progress is included
     createdAt: new Date(),
     updatedAt: new Date(),
     workspaceId: "w1",
@@ -57,6 +58,8 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
         epicId: feature.epicId || "none",
         releaseId: feature.releaseId || "none",
         acceptanceCriteria: feature.acceptanceCriteria || [],
+        assignedTo: Array.isArray(feature.assignedTo) ? feature.assignedTo : 
+                    feature.assignedTo ? [feature.assignedTo] : [], // Fix: ensure it's always an array
       };
       setFormData(processedFeature);
     } else {
@@ -71,9 +74,10 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
         effort: 5,
         value: 5,
         tags: [],
-        assignedTo: currentUser?.id,
+        assignedTo: currentUser?.id ? [currentUser.id] : [], // Fix: make this an array
         votes: 0,
         feedback: [],
+        progress: 0, // Ensure progress is included
         epicId: "none",
         releaseId: "none",
         createdAt: new Date(),
@@ -130,7 +134,8 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
     const processedData = {
       ...formData,
       epicId: formData.epicId === "none" ? "" : formData.epicId,
-      releaseId: formData.releaseId === "none" ? "" : formData.releaseId
+      releaseId: formData.releaseId === "none" ? "" : formData.releaseId,
+      assignedTo: formData.assignedTo || [], // Ensure assignedTo is always an array
     };
     
     const newFeature = {
@@ -139,6 +144,7 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
       effort: Number(processedData.effort) || 5,
       value: Number(processedData.value) || 5,
       votes: Number(processedData.votes) || 0,
+      progress: Number(processedData.progress) || 0, // Ensure progress is included
       tags: processedData.tags || [],
       acceptanceCriteria: processedData.acceptanceCriteria || [],
       feedback: processedData.feedback || [],

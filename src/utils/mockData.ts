@@ -1,4 +1,3 @@
-
 import { 
   User, Workspace, Goal, Initiative, Release, 
   Epic, Feature, Feedback, RoadmapView 
@@ -214,7 +213,7 @@ export const mockEpics: Epic[] = [
   }
 ];
 
-// Mock Features
+// Mock Features - fixed with proper assignedTo arrays and progress values
 export const mockFeatures: Feature[] = [
   {
     id: "f1",
@@ -232,11 +231,12 @@ export const mockFeatures: Feature[] = [
     value: 8,
     score: 7.5,
     tags: ["onboarding", "ux"],
-    assignedTo: "u3",
+    assignedTo: ["u3"], // Fixed: changed from string to array
     epicId: "e1",
     releaseId: "r1",
     feedback: ["fb1"],
     votes: 24,
+    progress: 60, // Added progress value
     createdAt: new Date("2023-01-20"),
     updatedAt: new Date("2023-02-15"),
     workspaceId: "w1"
@@ -261,6 +261,8 @@ export const mockFeatures: Feature[] = [
     releaseId: "r2",
     feedback: ["fb3"],
     votes: 18,
+    progress: 20, // Added progress value
+    assignedTo: [], // Added assignedTo as empty array
     createdAt: new Date("2023-02-05"),
     updatedAt: new Date("2023-02-05"),
     workspaceId: "w1"
@@ -275,11 +277,12 @@ export const mockFeatures: Feature[] = [
     value: 8,
     score: 7.0,
     tags: ["onboarding", "engagement"],
-    assignedTo: "u3",
+    assignedTo: ["u3"], // Fixed: changed from string to array
     epicId: "e1",
     releaseId: "r1",
     feedback: [],
     votes: 12,
+    progress: 40, // Added progress value
     createdAt: new Date("2023-01-22"),
     updatedAt: new Date("2023-02-10"),
     workspaceId: "w1"
@@ -298,6 +301,8 @@ export const mockFeatures: Feature[] = [
     releaseId: "r2",
     feedback: ["fb2"],
     votes: 15,
+    progress: 0, // Added progress value
+    assignedTo: [], // Added assignedTo as empty array
     createdAt: new Date("2023-02-10"),
     updatedAt: new Date("2023-02-10"),
     workspaceId: "w1"
@@ -312,11 +317,12 @@ export const mockFeatures: Feature[] = [
     value: 7,
     score: 6.5,
     tags: ["onboarding", "support"],
-    assignedTo: "u3",
+    assignedTo: ["u3"], // Fixed: changed from string to array
     epicId: "e1",
     releaseId: "r1",
     feedback: [],
     votes: 9,
+    progress: 80, // Added progress value
     createdAt: new Date("2023-01-25"),
     updatedAt: new Date("2023-03-01"),
     workspaceId: "w1"
@@ -335,6 +341,8 @@ export const mockFeatures: Feature[] = [
     releaseId: "r2",
     feedback: [],
     votes: 11,
+    progress: 0, // Added progress value
+    assignedTo: [], // Added assignedTo as empty array
     createdAt: new Date("2023-02-15"),
     updatedAt: new Date("2023-02-15"),
     workspaceId: "w1"
@@ -353,6 +361,8 @@ export const mockFeatures: Feature[] = [
     releaseId: "r3",
     feedback: ["fb4"],
     votes: 20,
+    progress: 0, // Added progress value
+    assignedTo: [], // Added assignedTo as empty array
     createdAt: new Date("2023-03-01"),
     updatedAt: new Date("2023-03-01"),
     workspaceId: "w1"
@@ -371,6 +381,8 @@ export const mockFeatures: Feature[] = [
     releaseId: "r3",
     feedback: [],
     votes: 16,
+    progress: 0, // Added progress value
+    assignedTo: [], // Added assignedTo as empty array
     createdAt: new Date("2023-03-05"),
     updatedAt: new Date("2023-03-05"),
     workspaceId: "w1"

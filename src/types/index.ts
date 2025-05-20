@@ -84,13 +84,13 @@ export interface Feature {
   value: number; // 1-10
   score?: number; // Calculated priority score
   tags: string[];
-  assignedTo?: string[]; // User IDs
+  assignedTo?: string[]; // User IDs - explicitly defined as string array
   dependencies?: string[]; // Feature IDs that this feature depends on
   epicId?: string; // Optional link to epic
   releaseId?: string; // Optional link to release
   feedback: string[]; // Feedback IDs
   votes: number;
-  progress: number; // Added progress field (0-100)
+  progress: number; // 0-100
   createdAt: Date;
   updatedAt: Date;
   workspaceId: string;
