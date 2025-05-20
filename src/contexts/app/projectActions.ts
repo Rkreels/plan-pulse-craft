@@ -12,8 +12,7 @@ export const createProjectActions = (
   // Epic CRUD operations
   const addEpic = (newEpic: Epic) => {
     setEpics(prev => [...prev, newEpic]);
-    toast({
-      title: "Epic added",
+    toast.success("Epic added", {
       description: `${newEpic.title} has been added successfully.`
     });
   };
@@ -22,16 +21,14 @@ export const createProjectActions = (
     setEpics(prev => prev.map(e => 
       e.id === updatedEpic.id ? updatedEpic : e
     ));
-    toast({
-      title: "Epic updated",
+    toast.success("Epic updated", {
       description: `${updatedEpic.title} has been updated successfully.`
     });
   };
 
   const deleteEpic = (epicId: string) => {
     setEpics(prev => prev.filter(e => e.id !== epicId));
-    toast({
-      title: "Epic deleted",
+    toast.success("Epic deleted", {
       description: "Epic has been deleted."
     });
   };
@@ -39,8 +36,7 @@ export const createProjectActions = (
   // Goal CRUD operations
   const addGoal = (newGoal: Goal) => {
     setGoals(prev => [...prev, newGoal]);
-    toast({
-      title: "Goal added",
+    toast.success("Goal added", {
       description: `${newGoal.title} has been added successfully.`
     });
   };
@@ -49,16 +45,14 @@ export const createProjectActions = (
     setGoals(prev => prev.map(g => 
       g.id === updatedGoal.id ? updatedGoal : g
     ));
-    toast({
-      title: "Goal updated",
+    toast.success("Goal updated", {
       description: `${updatedGoal.title} has been updated successfully.`
     });
   };
 
   const deleteGoal = (goalId: string) => {
     setGoals(prev => prev.filter(g => g.id !== goalId));
-    toast({
-      title: "Goal deleted",
+    toast.success("Goal deleted", {
       description: "Goal has been deleted."
     });
   };
@@ -66,8 +60,7 @@ export const createProjectActions = (
   // Release CRUD operations
   const addRelease = (newRelease: Release) => {
     setReleases(prev => [...prev, newRelease]);
-    toast({
-      title: "Release added",
+    toast.success("Release added", {
       description: `${newRelease.name} has been added successfully.`
     });
   };
@@ -76,16 +69,14 @@ export const createProjectActions = (
     setReleases(prev => prev.map(r => 
       r.id === updatedRelease.id ? updatedRelease : r
     ));
-    toast({
-      title: "Release updated",
+    toast.success("Release updated", {
       description: `${updatedRelease.name} has been updated successfully.`
     });
   };
 
   const deleteRelease = (releaseId: string) => {
     setReleases(prev => prev.filter(r => r.id !== releaseId));
-    toast({
-      title: "Release deleted",
+    toast.success("Release deleted", {
       description: "Release has been deleted."
     });
   };
@@ -93,8 +84,7 @@ export const createProjectActions = (
   // Initiative CRUD operations
   const addInitiative = (newInitiative: Initiative) => {
     setInitiatives(prev => [...prev, newInitiative]);
-    toast({
-      title: "Initiative added",
+    toast.success("Initiative added", {
       description: `${newInitiative.title} has been added successfully.`
     });
   };
@@ -103,16 +93,14 @@ export const createProjectActions = (
     setInitiatives(prev => prev.map(i => 
       i.id === updatedInitiative.id ? updatedInitiative : i
     ));
-    toast({
-      title: "Initiative updated",
+    toast.success("Initiative updated", {
       description: `${updatedInitiative.title} has been updated successfully.`
     });
   };
 
   const deleteInitiative = (initiativeId: string) => {
     setInitiatives(prev => prev.filter(i => i.id !== initiativeId));
-    toast({
-      title: "Initiative deleted",
+    toast.success("Initiative deleted", {
       description: "Initiative has been deleted."
     });
   };
@@ -130,8 +118,7 @@ export const createProjectActions = (
       }
       return initiative;
     }));
-    toast({
-      title: "Initiative linked",
+    toast.success("Initiative linked", {
       description: "Initiative has been linked to goal."
     });
   };
@@ -146,8 +133,7 @@ export const createProjectActions = (
       }
       return initiative;
     }));
-    toast({
-      title: "Initiative unlinked",
+    toast.success("Initiative unlinked", {
       description: "Initiative has been unlinked from goal."
     });
   };
@@ -161,8 +147,7 @@ export const createProjectActions = (
         role
       };
     });
-    toast({
-      title: "Role switched",
+    toast.success("Role switched", {
       description: `Now viewing as ${role.replace('_', ' ')}`
     });
   };

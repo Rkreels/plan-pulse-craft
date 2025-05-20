@@ -44,6 +44,20 @@ export function CustomerInsights() {
     { name: "API Integration", votes: 24 }
   ];
   
+  // Custom label renderer for pie charts
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between gap-4">
@@ -113,7 +127,7 @@ export function CustomerInsights() {
             </CardHeader>
             <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <Pie data={categoryData} cx="50%" cy="50%" outerRadius={80} label>
+                <Pie data={categoryData} cx="50%" cy="50%" outerRadius={80} labelLine={false} labelPosition="inside" label={renderCustomizedLabel}>
                   {categoryData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
