@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Feature } from "@/types";
 import { useAppContext } from "@/contexts/AppContext";
 import FeatureFormFields from "@/components/features/FeatureFormFields";
+import { v4 as uuidv4 } from "uuid";
 
 interface AddEditFeatureDialogProps {
   open: boolean;
@@ -36,6 +37,7 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
     votes: 0,
     feedback: [],
     progress: 0,
+    dependencies: [],
     createdAt: new Date(),
     updatedAt: new Date(),
     workspaceId: "w1",
@@ -69,6 +71,7 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
         assignedTo: currentUser?.id ? [currentUser.id] : [],
         votes: 0,
         feedback: [],
+        dependencies: [],
         progress: 0,
         epicId: "none",
         releaseId: "none",
@@ -95,13 +98,14 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
     };
     
     const newFeature = {
-      id: feature?.id || `f${Date.now()}`, // Generate ID if new
+      id: feature?.id || uuidv4(), // Generate ID if new
       ...processedData,
       effort: Number(processedData.effort) || 5,
       value: Number(processedData.value) || 5,
       votes: Number(processedData.votes) || 0,
       progress: Number(processedData.progress) || 0,
       tags: processedData.tags || [],
+      dependencies: processedData.dependencies || [],
       acceptanceCriteria: processedData.acceptanceCriteria || [],
       feedback: processedData.feedback || [],
       updatedAt: new Date(),

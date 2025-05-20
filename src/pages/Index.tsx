@@ -6,6 +6,8 @@ import { useState } from "react";
 import { useAppContext } from "@/contexts/AppContext";
 import { AddEditFeatureDialog } from "@/components/dialogs/AddEditFeatureDialog";
 import { useNavigate } from "react-router-dom";
+import { Feature } from "@/types";
+import { v4 as uuidv4 } from "uuid";
 
 const Index = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -16,8 +18,16 @@ const Index = () => {
     setIsDialogOpen(true);
   };
 
-  const handleSaveFeature = (feature) => {
-    addFeature({ ...feature, status: "idea" });
+  const handleSaveFeature = (feature: Feature) => {
+    const newFeature = {
+      ...feature,
+      id: feature.id || uuidv4(),
+      status: "idea",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    addFeature(newFeature);
     // Navigate to ideas page after adding a feature idea
     navigate("/ideas");
   };

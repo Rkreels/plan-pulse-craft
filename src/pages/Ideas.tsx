@@ -1,157 +1,156 @@
 
 import { useState } from "react";
 import { PageTitle } from "@/components/common/PageTitle";
-import { EmptyState } from "@/components/common/EmptyState";
-import { AddEditFeatureDialog } from "@/components/dialogs/AddEditFeatureDialog";
-import { useAppContext } from "@/contexts/AppContext";
-import { useRoleAccess } from "@/hooks/useRoleAccess";
-import { Feature } from "@/types";
-import { PlusCircle, LightbulbIcon, ThumbsUp, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import IdeasList from "@/components/ideas/IdeasList";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Check, LightbulbIcon, Plus, ThumbsUp } from "lucide-react";
+import { useAppContext } from "@/contexts/AppContext";
+import { AddEditFeatureDialog } from "@/components/dialogs/AddEditFeatureDialog";
+import { v4 as uuidv4 } from "uuid";
+import { Feature } from "@/types";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Ideas = () => {
-  const { features, addFeature, updateFeature, deleteFeature } = useAppContext();
-  const { hasPermission } = useRoleAccess();
+  const { features, addFeature, updateFeature } = useAppContext();
+  const [newIdeaDialogOpen, setNewIdeaDialogOpen] = useState(false);
+  const navigate = useNavigate();
   
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedFeature, setSelectedFeature] = useState<Feature | undefined>(undefined);
-  const [sortBy, setSortBy] = useState<"votes" | "value" | "newest">("votes");
-
-  // Filter only ideas and backlog items
-  const ideas = features.filter(f => f.status === "idea");
-  const backlogItems = features.filter(f => f.status === "backlog");
+  // Filter features to only show ideas
+  const ideaFeatures = features.filter(feature => feature.status === "idea");
   
-  // Sort features based on the selected criteria
-  const sortedIdeas = [...ideas].sort((a, b) => {
-    if (sortBy === "votes") return b.votes - a.votes;
-    if (sortBy === "value") return b.value - a.value;
-    // newest
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  const handleAddIdea = (feature: Feature) => {
+    const newIdea = {
+      ...feature,
+      id: feature.id || uuidv4(),
+      status: "idea",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    addFeature(newIdea);
+    toast.success("New idea added successfully");
+  };
   
-  const sortedBacklog = [...backlogItems].sort((a, b) => {
-    if (sortBy === "votes") return b.votes - a.votes;
-    if (sortBy === "value") return b.value - a.value;
-    // newest
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-
-  // Creates a new idea (feature with status "idea")
-  const handleAddIdea = () => {
-    setSelectedFeature(undefined);
-    setIsDialogOpen(true);
+  const handlePromoteToFeature = (idea: Feature) => {
+    const updatedFeature = {
+      ...idea,
+      status: "backlog",
+      updatedAt: new Date()
+    };
+    
+    updateFeature(updatedFeature);
+    toast.success(`"${idea.title}" promoted to feature backlog`);
+    navigate("/features");
   };
-
-  const handleEditFeature = (feature: Feature) => {
-    setSelectedFeature(feature);
-    setIsDialogOpen(true);
+  
+  const handleVoteForIdea = (idea: Feature) => {
+    const updatedIdea = {
+      ...idea,
+      votes: (idea.votes || 0) + 1,
+      updatedAt: new Date()
+    };
+    
+    updateFeature(updatedIdea);
+    toast.success(`Voted for "${idea.title}"`);
   };
-
-  const handleSaveFeature = (feature: Feature) => {
-    if (selectedFeature) {
-      updateFeature(feature);
-    } else {
-      addFeature({ ...feature, status: "idea" });
-    }
-  };
-
+  
   return (
     <>
       <PageTitle
-        title="Ideas & Backlog"
-        description="Collect and prioritize product ideas"
-        action={{
-          label: "Add Idea",
-          icon: <PlusCircle className="h-4 w-4" />,
-          onClick: handleAddIdea
-        }}
+        title="Feature Ideas"
+        description="Collect and organize new product ideas"
       />
       
-      <div className="flex justify-between items-center mb-6">
-        <Tabs defaultValue="ideas" className="w-full">
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
-            <TabsList>
-              <TabsTrigger value="ideas">Ideas ({ideas.length})</TabsTrigger>
-              <TabsTrigger value="backlog">Backlog ({backlogItems.length})</TabsTrigger>
-            </TabsList>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-sm">Sort by:</span>
-              <Button
-                variant={sortBy === "votes" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setSortBy("votes")}
-              >
-                <ThumbsUp className="h-4 w-4 mr-1" /> Votes
-              </Button>
-              <Button
-                variant={sortBy === "value" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setSortBy("value")}
-              >
-                <ArrowUp className="h-4 w-4 mr-1" /> Value
-              </Button>
-              <Button
-                variant={sortBy === "newest" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setSortBy("newest")}
-              >
-                <ArrowDown className="h-4 w-4 mr-1" /> Newest
-              </Button>
-            </div>
+      <div className="flex justify-between items-center my-4">
+        <Button onClick={() => navigate("/features")} variant="outline">
+          View All Features
+        </Button>
+        
+        <Button onClick={() => setNewIdeaDialogOpen(true)}>
+          <Plus size={16} className="mr-2" />
+          New Idea
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {ideaFeatures.length > 0 ? (
+          ideaFeatures.map(idea => (
+            <Card key={idea.id} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg">{idea.title}</CardTitle>
+                  <Badge variant="secondary">
+                    <LightbulbIcon size={12} className="mr-1" /> Idea
+                  </Badge>
+                </div>
+                <CardDescription>{idea.description}</CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="mt-2 space-y-4">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Votes</span>
+                    <Badge variant="outline" className="flex gap-1">
+                      <ThumbsUp size={12} />
+                      {idea.votes || 0}
+                    </Badge>
+                  </div>
+                  
+                  {idea.progress !== undefined && (
+                    <>
+                      <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <span>Progress</span>
+                        <span>{idea.progress || 0}%</span>
+                      </div>
+                      <Progress value={idea.progress} className="h-2" />
+                    </>
+                  )}
+                </div>
+              </CardContent>
+              
+              <CardFooter className="pt-1 flex gap-2 justify-end">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleVoteForIdea(idea)}
+                >
+                  <ThumbsUp size={14} className="mr-1" />
+                  Vote
+                </Button>
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  className="gap-1"
+                  onClick={() => handlePromoteToFeature(idea)}
+                >
+                  <Check size={14} />
+                  Promote
+                </Button>
+              </CardFooter>
+            </Card>
+          ))
+        ) : (
+          <div className="col-span-3 text-center py-12">
+            <LightbulbIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No ideas yet</h3>
+            <p className="text-muted-foreground mb-6">
+              Create your first feature idea to get started
+            </p>
+            <Button onClick={() => setNewIdeaDialogOpen(true)}>
+              <Plus size={16} className="mr-2" />
+              Add New Idea
+            </Button>
           </div>
-          
-          <TabsContent value="ideas">
-            {sortedIdeas.length === 0 ? (
-              <EmptyState 
-                title="No Ideas Yet" 
-                description="Start adding product ideas that can be evaluated and prioritized."
-                icon={<LightbulbIcon className="h-10 w-10 text-muted-foreground" />}
-                action={{
-                  label: "Add Idea",
-                  onClick: handleAddIdea
-                }}
-              />
-            ) : (
-              <IdeasList
-                items={sortedIdeas}
-                onEditItem={handleEditFeature}
-                onDeleteItem={deleteFeature}
-                hasEditPermission={hasPermission("edit_feature")}
-                hasDeletePermission={hasPermission("delete_feature")}
-                type="idea"
-              />
-            )}
-          </TabsContent>
-          
-          <TabsContent value="backlog">
-            {sortedBacklog.length === 0 ? (
-              <EmptyState 
-                title="Backlog is Empty" 
-                description="No features have been moved to the backlog yet."
-                icon={<LightbulbIcon className="h-10 w-10 text-muted-foreground" />}
-              />
-            ) : (
-              <IdeasList
-                items={sortedBacklog}
-                onEditItem={handleEditFeature}
-                onDeleteItem={deleteFeature}
-                hasEditPermission={hasPermission("edit_feature")}
-                hasDeletePermission={hasPermission("delete_feature")}
-                type="backlog"
-              />
-            )}
-          </TabsContent>
-        </Tabs>
+        )}
       </div>
       
       <AddEditFeatureDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        feature={selectedFeature}
-        onSave={handleSaveFeature}
+        open={newIdeaDialogOpen}
+        onOpenChange={setNewIdeaDialogOpen}
+        onSave={handleAddIdea}
       />
     </>
   );
