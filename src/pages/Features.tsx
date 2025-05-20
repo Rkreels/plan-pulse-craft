@@ -17,6 +17,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+type FeatureStatus = "not_started" | "in_progress" | "review" | "completed" | "idea" | "backlog" | "planned";
+type FeaturePriority = "low" | "medium" | "high" | "critical";
+
 const Features = () => {
   const [activeTab, setActiveTab] = useState("list");
   const { features, epics, addFeature } = useAppContext();
@@ -24,13 +27,13 @@ const Features = () => {
   const [newFeature, setNewFeature] = useState({
     title: "",
     description: "",
-    status: "not_started",
-    priority: "medium",
+    status: "not_started" as FeatureStatus,
+    priority: "medium" as FeaturePriority,
     epicId: ""
   });
   
   // Feature statuses for Kanban board
-  const statusColumns = {
+  const statusColumns: Record<string, { title: string; items: Feature[] }> = {
     not_started: { title: "Not Started", items: [] },
     in_progress: { title: "In Progress", items: [] },
     review: { title: "In Review", items: [] },
@@ -56,16 +59,22 @@ const Features = () => {
       assignedTo: [],
       dependencies: [],
       createdAt: new Date(),
+      tags: [],
+      votes: 0,
+      effort: 0,
+      value: 0,
       progress: 0,
-      workspaceId: "workspace-1"
+      feedback: [],
+      workspaceId: "workspace-1",
+      updatedAt: new Date()
     };
     
     addFeature(feature);
     setNewFeature({
       title: "",
       description: "",
-      status: "not_started",
-      priority: "medium",
+      status: "not_started" as FeatureStatus,
+      priority: "medium" as FeaturePriority,
       epicId: ""
     });
     setNewFeatureDialogOpen(false);
@@ -118,7 +127,7 @@ const Features = () => {
                   <Label htmlFor="feature-status">Status</Label>
                   <Select 
                     value={newFeature.status}
-                    onValueChange={value => setNewFeature({...newFeature, status: value})}
+                    onValueChange={value => setNewFeature({...newFeature, status: value as FeatureStatus})}
                   >
                     <SelectTrigger id="feature-status">
                       <SelectValue placeholder="Select status" />
@@ -135,7 +144,7 @@ const Features = () => {
                   <Label htmlFor="feature-priority">Priority</Label>
                   <Select 
                     value={newFeature.priority}
-                    onValueChange={value => setNewFeature({...newFeature, priority: value})}
+                    onValueChange={value => setNewFeature({...newFeature, priority: value as FeaturePriority})}
                   >
                     <SelectTrigger id="feature-priority">
                       <SelectValue placeholder="Select priority" />

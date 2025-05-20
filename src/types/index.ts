@@ -1,3 +1,4 @@
+
 // User and Authentication Types
 export interface User {
   id: string;
@@ -75,7 +76,7 @@ export interface Feature {
   id: string;
   title: string;
   description: string;
-  status: "idea" | "backlog" | "planned" | "in_progress" | "review" | "completed";
+  status: "idea" | "backlog" | "planned" | "in_progress" | "review" | "completed" | "not_started";
   userStory?: string;
   acceptanceCriteria?: string[];
   priority: "low" | "medium" | "high" | "critical";
@@ -83,11 +84,13 @@ export interface Feature {
   value: number; // 1-10
   score?: number; // Calculated priority score
   tags: string[];
-  assignedTo?: string; // User ID
+  assignedTo?: string[]; // User IDs
+  dependencies?: string[]; // Feature IDs that this feature depends on
   epicId?: string; // Optional link to epic
   releaseId?: string; // Optional link to release
   feedback: string[]; // Feedback IDs
   votes: number;
+  progress: number; // Added progress field (0-100)
   createdAt: Date;
   updatedAt: Date;
   workspaceId: string;
