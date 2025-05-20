@@ -1,217 +1,376 @@
 
 import { useState } from "react";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { 
-  Settings, 
-  Copy, 
-  ExternalLink, 
-  MessageSquare, 
-  ThumbsUp, 
-  Users, 
-  Filter, 
-  Search,
-  MoreHorizontal,
-  Link
-} from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { useAppContext } from "@/contexts/AppContext";
 
-export const CustomerFeedbackPortal = () => {
-  const [portalPreviewUrl, setPortalPreviewUrl] = useState("https://feedback.yourapp.com/portal");
-  
-  const feedbackItems = [
+interface FeedbackItem {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  status: string;
+  votes: number;
+  date: Date;
+}
+
+export function CustomerFeedbackPortal() {
+  const { toast } = useToast();
+  const { addFeedback } = useAppContext();
+  const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([
     {
-      id: 1,
-      title: "Add dark mode to the application",
-      description: "Would love to see a dark mode option for easier use at night.",
+      id: "f1",
+      title: "Add dark mode support",
+      description: "Would love to have dark mode for better night time viewing",
+      category: "Feature Request",
+      status: "Under Review",
+      votes: 24,
+      date: new Date(2025, 2, 10)
+    },
+    {
+      id: "f2",
+      title: "Dashboard is slow to load",
+      description: "The main dashboard takes over 5 seconds to load on my browser",
+      category: "Bug Report",
+      status: "In Progress",
+      votes: 16,
+      date: new Date(2025, 3, 5)
+    },
+    {
+      id: "f3",
+      title: "Add export to PDF feature",
+      description: "Need to be able to export reports to PDF format",
+      category: "Feature Request",
+      status: "Planned",
       votes: 42,
-      status: "under_review",
-      comments: 8,
-      customer: "Acme Corp",
-      createdAt: "2 days ago"
+      date: new Date(2025, 2, 28)
     },
     {
-      id: 2,
-      title: "Enhance export functionality with PDF support",
-      description: "Currently we can only export to CSV, but PDF would be much more useful for sharing.",
-      votes: 36,
-      status: "planned",
-      comments: 12,
-      customer: "TechGiant Inc",
-      createdAt: "5 days ago"
-    },
-    {
-      id: 3,
-      title: "Improve mobile responsiveness",
-      description: "The dashboard is difficult to use on mobile devices.",
-      votes: 28,
-      status: "in_progress",
-      comments: 5,
-      customer: "Startup Ltd",
-      createdAt: "1 week ago"
+      id: "f4",
+      title: "Login sometimes fails on mobile",
+      description: "Getting occasional login failures when using the app on my phone",
+      category: "Bug Report",
+      status: "Under Review",
+      votes: 8,
+      date: new Date(2025, 4, 2)
     }
-  ];
+  ]);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "under_review":
-        return <Badge variant="outline">Under Review</Badge>;
-      case "planned":
-        return <Badge className="bg-blue-500">Planned</Badge>;
-      case "in_progress":
-        return <Badge className="bg-amber-500">In Progress</Badge>;
-      case "completed":
-        return <Badge className="bg-green-500">Completed</Badge>;
-      default:
-        return <Badge>New</Badge>;
-    }
+  const [portalConfig, setPortalConfig] = useState({
+    allowAnonymous: true,
+    requireApproval: true,
+    enableVoting: true,
+    allowComments: true,
+    notifyOnNewFeedback: true,
+    customBranding: false
+  });
+
+  const [newFeedback, setNewFeedback] = useState({
+    title: "",
+    description: "",
+    category: "Feature Request"
+  });
+
+  const [filterCategory, setFilterCategory] = useState<string>("All");
+
+  const handleConfigChange = (key: keyof typeof portalConfig, value: boolean) => {
+    setPortalConfig(prev => ({
+      ...prev,
+      [key]: value
+    }));
   };
+
+  const handleSubmitFeedback = () => {
+    if (!newFeedback.title || !newFeedback.description) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const feedbackItem: FeedbackItem = {
+      id: `f${Date.now()}`,
+      title: newFeedback.title,
+      description: newFeedback.description,
+      category: newFeedback.category,
+      status: "New",
+      votes: 0,
+      date: new Date()
+    };
+
+    setFeedbackItems(prev => [feedbackItem, ...prev]);
+    
+    // Add to app context
+    addFeedback({
+      id: feedbackItem.id,
+      title: feedbackItem.title,
+      description: feedbackItem.description,
+      source: "customer",
+      status: "new",
+      votes: 0,
+      features: [],
+      submittedBy: "customer@example.com",
+      createdAt: new Date(),
+      workspaceId: "workspace-1"
+    });
+
+    setNewFeedback({
+      title: "",
+      description: "",
+      category: "Feature Request"
+    });
+
+    toast({
+      title: "Feedback submitted",
+      description: "Thank you for your feedback!"
+    });
+  };
+
+  const handleVote = (id: string) => {
+    setFeedbackItems(prev => 
+      prev.map(item => 
+        item.id === id ? { ...item, votes: item.votes + 1 } : item
+      )
+    );
+  };
+
+  const filteredFeedback = filterCategory === "All" 
+    ? feedbackItems 
+    : feedbackItems.filter(item => item.category === filterCategory);
+
+  const sortedFeedback = [...filteredFeedback].sort((a, b) => b.votes - a.votes);
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Customer Feedback Portal</CardTitle>
-          <CardDescription>
-            Configure and manage your public feedback portal
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-medium mb-2">Portal URL</h3>
-                <div className="flex gap-2">
-                  <Input value={portalPreviewUrl} onChange={(e) => setPortalPreviewUrl(e.target.value)} />
-                  <Button variant="outline" size="icon">
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <Button variant="outline" className="w-full">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View Public Portal
-              </Button>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Portal Statistics</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <Card>
-                  <CardContent className="pt-6 text-center">
-                    <div className="text-2xl font-bold">152</div>
-                    <p className="text-xs text-muted-foreground mt-1">Active Ideas</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6 text-center">
-                    <div className="text-2xl font-bold">674</div>
-                    <p className="text-xs text-muted-foreground mt-1">Total Votes</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6 text-center">
-                    <div className="text-2xl font-bold">28</div>
-                    <p className="text-xs text-muted-foreground mt-1">Companies</p>
-                  </CardContent>
-                </Card>
-              </div>
-              <Button className="w-full">
-                <Settings className="h-4 w-4 mr-2" />
-                Configure Portal
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Recent Feedback</h2>
-        <div className="flex gap-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="pl-8 w-[200px]"
-            />
-          </div>
-          <Button variant="outline">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        {feedbackItems.map(item => (
-          <Card key={item.id}>
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{item.title}</CardTitle>
-                  <CardDescription>{item.description}</CardDescription>
-                </div>
-                <div className="flex gap-2">
-                  {getStatusBadge(item.status)}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Link className="h-4 w-4 mr-2" />
-                        Link to Feature
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Respond
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        View in Portal
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
+      <Tabs defaultValue="submit">
+        <TabsList className="mb-4">
+          <TabsTrigger value="submit">Submit Feedback</TabsTrigger>
+          <TabsTrigger value="view">View Feedback</TabsTrigger>
+          <TabsTrigger value="configure">Configure Portal</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="submit" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Submit Your Feedback</CardTitle>
+              <CardDescription>
+                We value your input! Share your ideas, report issues, or suggest improvements.
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap justify-between items-center text-sm">
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-1">
-                    <ThumbsUp className="h-4 w-4 text-muted-foreground" />
-                    <span>{item.votes} votes</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                    <span>{item.comments} comments</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>{item.customer}</span>
-                  </div>
-                </div>
-                <span className="text-muted-foreground">Created {item.createdAt}</span>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="feedback-title">Title</Label>
+                <Input 
+                  id="feedback-title" 
+                  placeholder="Briefly describe your feedback" 
+                  value={newFeedback.title}
+                  onChange={e => setNewFeedback(prev => ({ ...prev, title: e.target.value }))}
+                />
               </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="feedback-type">Category</Label>
+                <Select 
+                  value={newFeedback.category} 
+                  onValueChange={value => setNewFeedback(prev => ({ ...prev, category: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Feature Request">Feature Request</SelectItem>
+                    <SelectItem value="Bug Report">Bug Report</SelectItem>
+                    <SelectItem value="Improvement">Improvement</SelectItem>
+                    <SelectItem value="Question">Question</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="feedback-description">Description</Label>
+                <Textarea 
+                  id="feedback-description" 
+                  placeholder="Please provide details about your feedback" 
+                  rows={5}
+                  value={newFeedback.description}
+                  onChange={e => setNewFeedback(prev => ({ ...prev, description: e.target.value }))}
+                />
+              </div>
+              
+              <Button onClick={handleSubmitFeedback} className="w-full">Submit Feedback</Button>
             </CardContent>
           </Card>
-        ))}
-      </div>
+        </TabsContent>
+        
+        <TabsContent value="view" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div className="space-x-2">
+              <span className="text-sm font-medium">Filter:</span>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Categories</SelectItem>
+                  <SelectItem value="Feature Request">Feature Requests</SelectItem>
+                  <SelectItem value="Bug Report">Bug Reports</SelectItem>
+                  <SelectItem value="Improvement">Improvements</SelectItem>
+                  <SelectItem value="Question">Questions</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <span className="text-sm text-muted-foreground">{sortedFeedback.length} items</span>
+          </div>
+          
+          <div className="space-y-4">
+            {sortedFeedback.length > 0 ? (
+              sortedFeedback.map(item => (
+                <Card key={item.id}>
+                  <CardContent className="pt-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-semibold">{item.title}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline">{item.category}</Badge>
+                          <Badge className={
+                            item.status === "Completed" ? "bg-green-500" :
+                            item.status === "In Progress" ? "bg-blue-500" :
+                            item.status === "Planned" ? "bg-amber-500" :
+                            "bg-slate-500"
+                          }>{item.status}</Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {item.date.toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="mt-3 text-sm text-muted-foreground">
+                          {item.description}
+                        </p>
+                      </div>
+                      
+                      <div className="flex flex-col items-center">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex flex-col px-4 py-2"
+                          onClick={() => handleVote(item.id)}
+                        >
+                          <span className="text-xl font-bold">{item.votes}</span>
+                          <span className="text-xs">votes</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center p-10">
+                <h3 className="text-xl font-semibold mb-2">No feedback found</h3>
+                <p className="text-muted-foreground">No feedback matching your filters</p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="configure">
+          <Card>
+            <CardHeader>
+              <CardTitle>Portal Configuration</CardTitle>
+              <CardDescription>
+                Customize how your customer feedback portal works
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="allow-anonymous">Allow Anonymous Feedback</Label>
+                  <p className="text-sm text-muted-foreground">Let users submit feedback without an account</p>
+                </div>
+                <Switch 
+                  id="allow-anonymous" 
+                  checked={portalConfig.allowAnonymous} 
+                  onCheckedChange={(checked) => handleConfigChange('allowAnonymous', checked)} 
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="require-approval">Require Approval</Label>
+                  <p className="text-sm text-muted-foreground">Review feedback before it appears publicly</p>
+                </div>
+                <Switch 
+                  id="require-approval" 
+                  checked={portalConfig.requireApproval} 
+                  onCheckedChange={(checked) => handleConfigChange('requireApproval', checked)} 
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="enable-voting">Enable Voting</Label>
+                  <p className="text-sm text-muted-foreground">Allow users to upvote feedback items</p>
+                </div>
+                <Switch 
+                  id="enable-voting" 
+                  checked={portalConfig.enableVoting}
+                  onCheckedChange={(checked) => handleConfigChange('enableVoting', checked)}  
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="allow-comments">Allow Comments</Label>
+                  <p className="text-sm text-muted-foreground">Enable users to comment on feedback</p>
+                </div>
+                <Switch 
+                  id="allow-comments" 
+                  checked={portalConfig.allowComments}
+                  onCheckedChange={(checked) => handleConfigChange('allowComments', checked)}  
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notify-feedback">Notification on New Feedback</Label>
+                  <p className="text-sm text-muted-foreground">Receive notifications when new feedback is submitted</p>
+                </div>
+                <Switch 
+                  id="notify-feedback" 
+                  checked={portalConfig.notifyOnNewFeedback} 
+                  onCheckedChange={(checked) => handleConfigChange('notifyOnNewFeedback', checked)} 
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="custom-branding">Custom Branding</Label>
+                  <p className="text-sm text-muted-foreground">Apply your company branding to the portal</p>
+                </div>
+                <Switch 
+                  id="custom-branding" 
+                  checked={portalConfig.customBranding} 
+                  onCheckedChange={(checked) => handleConfigChange('customBranding', checked)} 
+                />
+              </div>
+              
+              <Button className="w-full mt-4" onClick={() => toast({ title: "Settings saved", description: "Your portal configuration has been updated." })}>
+                Save Configuration
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
-};
+}

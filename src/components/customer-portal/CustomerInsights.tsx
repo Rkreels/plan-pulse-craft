@@ -1,167 +1,208 @@
 
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { 
-  PieChart as RechartsPieChart, 
-  BarChart, 
-  LineChart as RechartsLineChart 
-} from 'recharts';
-import { Pie, Bar, Line, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { PieChart, LineChart, BarChart3 } from "lucide-react";
+import { useAppContext } from "@/contexts/AppContext";
+import { PieChart as Pie, Cell, ResponsiveContainer, Sector, Tooltip as ChartTooltip } from "recharts";
+import { LineChart as Line, CartesianGrid, XAxis, YAxis, Legend, Line as ChartLine, Tooltip, BarChart, Bar } from "recharts";
 
-const FEEDBACK_BY_TYPE = [
-  { name: 'Feature Requests', value: 45 },
-  { name: 'Bug Reports', value: 28 },
-  { name: 'UX Improvements', value: 17 },
-  { name: 'Performance Issues', value: 10 }
-];
-
-const FEEDBACK_BY_CUSTOMER_SEGMENT = [
-  { name: 'Enterprise', value: 35 },
-  { name: 'Mid-Market', value: 40 },
-  { name: 'Small Business', value: 25 }
-];
-
-const FEEDBACK_TREND = [
-  { month: 'Jan', requests: 25, implemented: 10 },
-  { month: 'Feb', requests: 30, implemented: 15 },
-  { month: 'Mar', requests: 35, implemented: 18 },
-  { month: 'Apr', requests: 25, implemented: 12 },
-  { month: 'May', requests: 40, implemented: 20 },
-  { month: 'Jun', requests: 45, implemented: 22 }
-];
-
-const TOP_REQUESTED_FEATURES = [
-  { name: 'Dark Mode', requests: 42 },
-  { name: 'PDF Export', requests: 36 },
-  { name: 'Mobile App', requests: 32 },
-  { name: 'API Access', requests: 28 },
-  { name: 'Custom Fields', requests: 24 }
-];
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
-
-export const CustomerInsights = () => {
+export function CustomerInsights() {
+  const { feedback } = useAppContext();
+  const [timeRange, setTimeRange] = useState("30days");
+  const [insightType, setInsightType] = useState("feedback");
+  
+  // Feedback by category data
+  const categoryData = [
+    { name: "Feature Requests", value: 42 },
+    { name: "Bug Reports", value: 28 },
+    { name: "Improvements", value: 15 },
+    { name: "Questions", value: 10 },
+    { name: "Others", value: 5 }
+  ];
+  
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+  
+  // Feedback over time data
+  const timelineData = [
+    { name: "Week 1", requests: 10, bugs: 8, improvements: 5 },
+    { name: "Week 2", requests: 12, bugs: 6, improvements: 3 },
+    { name: "Week 3", requests: 8, bugs: 7, improvements: 4 },
+    { name: "Week 4", requests: 15, bugs: 5, improvements: 2 },
+    { name: "Week 5", requests: 7, bugs: 2, improvements: 1 }
+  ];
+  
+  // Top voted features data
+  const topVotedData = [
+    { name: "Dark Mode", votes: 45 },
+    { name: "Export to PDF", votes: 38 },
+    { name: "Mobile App", votes: 32 },
+    { name: "Dashboard Widgets", votes: 28 },
+    { name: "API Integration", votes: 24 }
+  ];
+  
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="flex flex-col md:flex-row justify-between gap-4">
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Time Range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7days">Last 7 days</SelectItem>
+              <SelectItem value="30days">Last 30 days</SelectItem>
+              <SelectItem value="90days">Last 90 days</SelectItem>
+              <SelectItem value="year">Last year</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Tabs value={insightType} onValueChange={setInsightType} className="w-full md:w-auto">
+            <TabsList>
+              <TabsTrigger value="feedback">Feedback</TabsTrigger>
+              <TabsTrigger value="engagement">Engagement</TabsTrigger>
+              <TabsTrigger value="satisfaction">Satisfaction</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        
+        <Button variant="outline">Export Report</Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Feedback by Type</CardTitle>
-            <CardDescription>
-              Distribution of customer feedback by category
-            </CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Total Feedback</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsPieChart>
-                  <Pie
-                    data={FEEDBACK_BY_TYPE}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {FEEDBACK_BY_TYPE.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </RechartsPieChart>
-              </ResponsiveContainer>
-            </div>
+          <CardContent className="pt-2">
+            <div className="text-3xl font-bold">{feedback.length}</div>
+            <p className="text-muted-foreground text-sm">+12% from last period</p>
           </CardContent>
         </Card>
-
+        
         <Card>
-          <CardHeader>
-            <CardTitle>Feedback by Customer Segment</CardTitle>
-            <CardDescription>
-              Distribution of feedback across different customer segments
-            </CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Open Items</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsPieChart>
-                  <Pie
-                    data={FEEDBACK_BY_CUSTOMER_SEGMENT}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {FEEDBACK_BY_CUSTOMER_SEGMENT.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </RechartsPieChart>
-              </ResponsiveContainer>
-            </div>
+          <CardContent className="pt-2">
+            <div className="text-3xl font-bold">{feedback.filter(f => f.status === "new" || f.status === "reviewed").length}</div>
+            <p className="text-muted-foreground text-sm">24% needing review</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Customer Sentiment</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <div className="text-3xl font-bold">76%</div>
+            <p className="text-muted-foreground text-sm">+5% from last period</p>
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Feedback Trends Over Time</CardTitle>
-          <CardDescription>
-            Monthly trend of customer feedback submissions and implementations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RechartsLineChart data={FEEDBACK_TREND} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="requests" stroke="#8884d8" name="Requests" />
-                <Line type="monotone" dataKey="implemented" stroke="#82ca9d" name="Implemented" />
-              </RechartsLineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Top Requested Features</CardTitle>
-          <CardDescription>
-            Most popular feature requests by vote count
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={TOP_REQUESTED_FEATURES} layout="vertical" margin={{ top: 5, right: 30, left: 60, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="requests" fill="#8884d8" name="Requests" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      
+      {insightType === "feedback" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="md:col-span-1">
+            <CardHeader>
+              <CardTitle>Feedback by Category</CardTitle>
+              <CardDescription>Distribution of feedback by type</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <Pie data={categoryData} cx="50%" cy="50%" outerRadius={80} label>
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+              </ResponsiveContainer>
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                {categoryData.map((entry, index) => (
+                  <div key={entry.name} className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                    <span className="text-xs">{entry.name}: {entry.value}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="md:col-span-1">
+            <CardHeader>
+              <CardTitle>Feedback Over Time</CardTitle>
+              <CardDescription>Trend of feedback submissions</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <Line data={timelineData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <ChartLine type="monotone" dataKey="requests" stroke="#8884d8" activeDot={{ r: 8 }} />
+                  <ChartLine type="monotone" dataKey="bugs" stroke="#82ca9d" />
+                  <ChartLine type="monotone" dataKey="improvements" stroke="#ffc658" />
+                </Line>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle>Top Voted Features</CardTitle>
+              <CardDescription>Features with the most user votes</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topVotedData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="votes" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
+      {insightType === "engagement" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>User Engagement</CardTitle>
+            <CardDescription>Analysis of customer portal usage</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[400px]">
+            <div className="text-center p-10">
+              <BarChart3 className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Engagement Analytics</h3>
+              <p className="text-muted-foreground">This will display detailed user engagement metrics for the customer portal.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {insightType === "satisfaction" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Customer Satisfaction</CardTitle>
+            <CardDescription>Analysis of customer satisfaction metrics</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[400px]">
+            <div className="text-center p-10">
+              <LineChart className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Satisfaction Metrics</h3>
+              <p className="text-muted-foreground">This will display detailed customer satisfaction analytics and trends.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
-};
+}

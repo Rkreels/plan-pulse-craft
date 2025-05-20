@@ -1,5 +1,5 @@
 
-import { MainLayout } from "@/components/layout/MainLayout";
+import { useState } from "react";
 import { PageTitle } from "@/components/common/PageTitle";
 import { useAppContext } from "@/contexts/AppContext";
 import { 
@@ -19,15 +19,45 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Plus, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AddEditRoadmapViewDialog } from "@/components/dialogs/AddEditRoadmapViewDialog";
+import { RoadmapView } from "@/types";
+import { toast } from "sonner";
 
 const Roadmap = () => {
-  const { roadmapViews, currentView, setCurrentView } = useAppContext();
+  const { 
+    roadmapViews, 
+    currentView, 
+    setCurrentView, 
+    goals, 
+    initiatives, 
+    releases, 
+    epics 
+  } = useAppContext();
+
+  const [isAddEditViewDialogOpen, setIsAddEditViewDialogOpen] = useState(false);
+  const [selectedView, setSelectedView] = useState<RoadmapView | undefined>(undefined);
+
+  const handleAddViewClick = () => {
+    setSelectedView(undefined);
+    setIsAddEditViewDialogOpen(true);
+  };
+
+  const handleEditViewClick = () => {
+    setSelectedView(currentView || undefined);
+    setIsAddEditViewDialogOpen(true);
+  };
+
+  const handleSaveView = (view: RoadmapView) => {
+    // In a real app we would update or add to the roadmapViews state
+    // For now, let's just set it as current and show a toast
+    setCurrentView(view);
+    toast.success(selectedView ? "View updated" : "New view created");
+  };
 
   // Simple timeline view of goals, epics, and releases
   const renderTimelineView = () => {
-    const { goals, initiatives, releases, epics } = useAppContext();
-    
     // Sort items by date
     const sortedGoals = [...goals].sort((a, b) => {
       const dateA = a.targetDate ? new Date(a.targetDate).getTime() : 0;
@@ -61,7 +91,7 @@ const Roadmap = () => {
     
     return (
       <div className="mt-6">
-        <div className="grid grid-cols-4 gap-4 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-2">
           {quarters.map((quarter, i) => (
             <div key={i} className="px-4 py-2 bg-muted rounded-md text-center">
               <h3 className="font-medium">{quarter.name}</h3>
@@ -75,7 +105,7 @@ const Roadmap = () => {
               <Badge className="bg-primary">Goals</Badge>
               Strategic Goals
             </h2>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {quarters.map((quarter, i) => (
                 <div key={i} className="border rounded-md p-3 h-full">
                   {sortedGoals
@@ -104,7 +134,7 @@ const Roadmap = () => {
               <Badge className="bg-green-600">Releases</Badge>
               Product Releases
             </h2>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {quarters.map((quarter, i) => (
                 <div key={i} className="border rounded-md p-3 h-full">
                   {sortedReleases
@@ -138,7 +168,7 @@ const Roadmap = () => {
               <Badge className="bg-blue-600">Epics</Badge>
               Development Epics
             </h2>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {quarters.map((quarter, i) => (
                 <div key={i} className="border rounded-md p-3 h-full">
                   {epics
@@ -166,6 +196,55 @@ const Roadmap = () => {
     );
   };
 
+  // Board view
+  const renderBoardView = () => {
+    const getStatusColumn = (status: string) => {
+      switch (status) {
+        case "not_started":
+          return "Planned";
+        case "in_progress":
+          return "In Progress";
+        case "completed":
+          return "Completed";
+        case "at_risk":
+          return "At Risk";
+        default:
+          return "Backlog";
+      }
+    };
+
+    // Get all epics grouped by status
+    const epicsByStatus = {
+      "Planned": epics.filter(epic => epic.status === "planned" || epic.status === "backlog"),
+      "In Progress": epics.filter(epic => epic.status === "in_progress"),
+      "Review": epics.filter(epic => epic.status === "review"),
+      "Completed": epics.filter(epic => epic.status === "completed"),
+    };
+
+    return (
+      <div className="mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {Object.entries(epicsByStatus).map(([columnName, columnEpics]) => (
+            <div key={columnName} className="flex flex-col">
+              <h3 className="font-semibold mb-2 px-2">{columnName} <Badge>{columnEpics.length}</Badge></h3>
+              <div className="bg-muted rounded-md p-2 flex-1 min-h-[200px]">
+                {columnEpics.map(epic => (
+                  <Card key={epic.id} className="mb-2 cursor-pointer hover:border-primary">
+                    <CardContent className="p-3">
+                      <div className="font-medium text-sm">{epic.title}</div>
+                      <div className="text-xs text-muted-foreground mt-1">{epic.features ? epic.features.length : 0} features</div>
+                      <Progress value={epic.progress} className="h-1 mt-2" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <PageTitle
@@ -173,8 +252,8 @@ const Roadmap = () => {
         description="Strategic view of your product plan"
       />
       
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
           <Select
             value={currentView?.id || ""}
             onValueChange={(value) => {
@@ -182,7 +261,7 @@ const Roadmap = () => {
               if (view) setCurrentView(view);
             }}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder="Select view" />
             </SelectTrigger>
             <SelectContent>
@@ -200,10 +279,25 @@ const Roadmap = () => {
           <Badge variant="outline" className="capitalize">
             {currentView?.type || "timeline"}
           </Badge>
+
+          <Button variant="outline" size="sm" onClick={handleEditViewClick}>
+            <Settings className="h-4 w-4 mr-2" /> Edit view
+          </Button>
         </div>
+
+        <Button onClick={handleAddViewClick}>
+          <Plus className="h-4 w-4 mr-2" /> New View
+        </Button>
       </div>
       
-      {renderTimelineView()}
+      {currentView?.type === 'board' ? renderBoardView() : renderTimelineView()}
+
+      <AddEditRoadmapViewDialog
+        open={isAddEditViewDialogOpen}
+        onOpenChange={setIsAddEditViewDialogOpen}
+        view={selectedView}
+        onSave={handleSaveView}
+      />
     </>
   );
 };

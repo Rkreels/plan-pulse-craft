@@ -16,9 +16,24 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Pencil, Plus, MoreHorizontal, Trash2, Link } from "lucide-react";
+import { toast } from "sonner";
+import { AddEditThemeDialog } from "@/components/dialogs/AddEditThemeDialog";
+import { LinkInitiativesDialog } from "@/components/dialogs/LinkInitiativesDialog";
+import { useAppContext } from "@/contexts/AppContext";
+import { Initiative } from "@/types";
+
+export interface StrategicTheme {
+  id: number | string;
+  name: string;
+  description: string;
+  linkedInitiatives: number;
+  linkedGoals: number;
+  color: string;
+}
 
 export const StrategicThemes = () => {
-  const [themes, setThemes] = useState([
+  const { initiatives } = useAppContext();
+  const [themes, setThemes] = useState<StrategicTheme[]>([
     {
       id: 1,
       name: "Customer Delight",
@@ -45,11 +60,62 @@ export const StrategicThemes = () => {
     }
   ]);
 
+  const [isAddEditDialogOpen, setIsAddEditDialogOpen] = useState(false);
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState<StrategicTheme | undefined>(undefined);
+  
+  const handleAddNewClick = () => {
+    setSelectedTheme(undefined);
+    setIsAddEditDialogOpen(true);
+  };
+
+  const handleEditClick = (theme: StrategicTheme) => {
+    setSelectedTheme(theme);
+    setIsAddEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (themeId: number | string) => {
+    if (window.confirm("Are you sure you want to delete this theme?")) {
+      setThemes(themes.filter(theme => theme.id !== themeId));
+      toast.success("Theme deleted successfully");
+    }
+  };
+
+  const handleSaveTheme = (theme: StrategicTheme) => {
+    if (selectedTheme) {
+      setThemes(themes.map(t => t.id === theme.id ? theme : t));
+      toast.success("Theme updated successfully");
+    } else {
+      setThemes([...themes, theme]);
+      toast.success("Theme created successfully");
+    }
+  };
+
+  const handleLinkInitiatives = (selectedInitiatives: Initiative[]) => {
+    if (!selectedTheme) return;
+    
+    // In a real app, we would establish a relationship between themes and initiatives
+    // For now, we'll just update the count in the theme
+    const updatedTheme = {
+      ...selectedTheme,
+      linkedInitiatives: selectedInitiatives.length,
+      linkedGoals: selectedTheme.linkedGoals
+    };
+    
+    setThemes(themes.map(t => t.id === selectedTheme.id ? updatedTheme : t));
+    toast.success(`Linked ${selectedInitiatives.length} initiatives to theme`);
+  };
+
+  const handleLinkToInitiativesClick = (theme: StrategicTheme) => {
+    setSelectedTheme(theme);
+    setIsLinkDialogOpen(true);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Strategic Themes</h2>
-        <Button>
+        <Button onClick={handleAddNewClick}>
           <Plus className="h-4 w-4 mr-2" /> New Theme
         </Button>
       </div>
@@ -70,10 +136,10 @@ export const StrategicThemes = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleEditClick(theme)}>
                       <Pencil className="h-4 w-4 mr-2" /> Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
+                    <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteClick(theme.id)}>
                       <Trash2 className="h-4 w-4 mr-2" /> Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -96,7 +162,11 @@ export const StrategicThemes = () => {
                   </span>
                   <Badge variant="outline">{theme.linkedGoals}</Badge>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleLinkToInitiativesClick(theme)}
+                >
                   Link to Initiatives
                 </Button>
               </div>
@@ -104,6 +174,22 @@ export const StrategicThemes = () => {
           </Card>
         ))}
       </div>
+
+      <AddEditThemeDialog
+        open={isAddEditDialogOpen}
+        onOpenChange={setIsAddEditDialogOpen}
+        theme={selectedTheme}
+        onSave={handleSaveTheme}
+      />
+
+      {selectedTheme && (
+        <LinkInitiativesDialog
+          open={isLinkDialogOpen}
+          onOpenChange={setIsLinkDialogOpen}
+          themeId={selectedTheme.id}
+          onLink={handleLinkInitiatives}
+        />
+      )}
     </div>
   );
 };
