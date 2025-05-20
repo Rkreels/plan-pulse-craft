@@ -14,15 +14,15 @@ const App = () => (
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <TooltipProvider>
-          <SidebarProvider>
+        <SidebarProvider>
+          <TooltipProvider>
             <div className="flex w-full min-h-screen">
               <Toaster />
               <Sonner />
               <AppRoutes />
             </div>
-          </SidebarProvider>
-        </TooltipProvider>
+          </TooltipProvider>
+        </SidebarProvider>
       </AppProvider>
     </QueryClientProvider>
   </BrowserRouter>
