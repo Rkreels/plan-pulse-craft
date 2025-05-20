@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { PieChart, LineChart, BarChart3 } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
-import { PieChart as Pie, Cell, ResponsiveContainer, Sector, Tooltip as ChartTooltip } from "recharts";
-import { LineChart as Line, CartesianGrid, XAxis, YAxis, Legend, Line as ChartLine, Tooltip, BarChart, Bar } from "recharts";
+import { ResponsiveContainer, PieChart as PieChartComponent } from "recharts";
+import { Pie, Cell, Sector, Tooltip as ChartTooltip } from "recharts";
+import { LineChart as LineChartComponent, CartesianGrid, XAxis, YAxis, Legend, Line as ChartLine, Tooltip, BarChart, Bar } from "recharts";
 
 export function CustomerInsights() {
   const { feedback } = useAppContext();
@@ -127,11 +128,21 @@ export function CustomerInsights() {
             </CardHeader>
             <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <Pie data={categoryData} cx="50%" cy="50%" outerRadius={80} labelLine={false} labelPosition="inside" label={renderCustomizedLabel}>
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
+                <PieChartComponent>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                    <Label content={renderCustomizedLabel} />
+                  </Pie>
+                  <Tooltip />
+                </PieChartComponent>
               </ResponsiveContainer>
               <div className="grid grid-cols-2 gap-2 mt-4">
                 {categoryData.map((entry, index) => (
@@ -151,7 +162,7 @@ export function CustomerInsights() {
             </CardHeader>
             <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <Line data={timelineData}>
+                <LineChartComponent data={timelineData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -160,7 +171,7 @@ export function CustomerInsights() {
                   <ChartLine type="monotone" dataKey="requests" stroke="#8884d8" activeDot={{ r: 8 }} />
                   <ChartLine type="monotone" dataKey="bugs" stroke="#82ca9d" />
                   <ChartLine type="monotone" dataKey="improvements" stroke="#ffc658" />
-                </Line>
+                </LineChartComponent>
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -220,3 +231,9 @@ export function CustomerInsights() {
     </div>
   );
 }
+
+// This is a custom label component that works with recharts Pie component
+const Label = (props) => {
+  const { content, ...rest } = props;
+  return <>{content && content(rest)}</>;
+};

@@ -24,12 +24,15 @@ export const createFeatureActions = (
   };
 
   const deleteFeature = (featureId: string) => {
-    const featureToDelete = setFeatures(prev => {
-      const feature = prev.find(f => f.id === featureId);
-      return prev.filter(f => f.id !== featureId);
-    });
-    toast.success("Feature deleted", {
-      description: "Feature has been deleted."
+    setFeatures(prev => {
+      const featureToDelete = prev.find(f => f.id === featureId);
+      const result = prev.filter(f => f.id !== featureId);
+      
+      toast.success("Feature deleted", {
+        description: "Feature has been deleted."
+      });
+      
+      return result;
     });
   };
 
@@ -44,12 +47,15 @@ export const createFeatureActions = (
   };
 
   const deleteFeedback = (feedbackId: string) => {
-    const feedbackToDelete = setFeedback(prev => {
-      const feedback = prev.find(f => f.id === feedbackId);
-      return prev.filter(f => f.id !== feedbackId);
-    });
-    toast.success("Feedback deleted", {
-      description: "Feedback has been deleted."
+    setFeedback(prev => {
+      const feedbackToDelete = prev.find(f => f.id === feedbackId);
+      const result = prev.filter(f => f.id !== feedbackId);
+      
+      toast.success("Feedback deleted", {
+        description: "Feedback has been deleted."
+      });
+      
+      return result;
     });
   };
 

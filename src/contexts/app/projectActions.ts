@@ -27,9 +27,12 @@ export const createProjectActions = (
   };
 
   const deleteEpic = (epicId: string) => {
-    setEpics(prev => prev.filter(e => e.id !== epicId));
-    toast.success("Epic deleted", {
-      description: "Epic has been deleted."
+    setEpics(prev => {
+      const result = prev.filter(e => e.id !== epicId);
+      toast.success("Epic deleted", {
+        description: "Epic has been deleted."
+      });
+      return result;
     });
   };
 
@@ -51,9 +54,12 @@ export const createProjectActions = (
   };
 
   const deleteGoal = (goalId: string) => {
-    setGoals(prev => prev.filter(g => g.id !== goalId));
-    toast.success("Goal deleted", {
-      description: "Goal has been deleted."
+    setGoals(prev => {
+      const result = prev.filter(g => g.id !== goalId);
+      toast.success("Goal deleted", {
+        description: "Goal has been deleted."
+      });
+      return result;
     });
   };
 
@@ -75,9 +81,12 @@ export const createProjectActions = (
   };
 
   const deleteRelease = (releaseId: string) => {
-    setReleases(prev => prev.filter(r => r.id !== releaseId));
-    toast.success("Release deleted", {
-      description: "Release has been deleted."
+    setReleases(prev => {
+      const result = prev.filter(r => r.id !== releaseId);
+      toast.success("Release deleted", {
+        description: "Release has been deleted."
+      });
+      return result;
     });
   };
 
@@ -99,9 +108,12 @@ export const createProjectActions = (
   };
 
   const deleteInitiative = (initiativeId: string) => {
-    setInitiatives(prev => prev.filter(i => i.id !== initiativeId));
-    toast.success("Initiative deleted", {
-      description: "Initiative has been deleted."
+    setInitiatives(prev => {
+      const result = prev.filter(i => i.id !== initiativeId);
+      toast.success("Initiative deleted", {
+        description: "Initiative has been deleted."
+      });
+      return result;
     });
   };
 
