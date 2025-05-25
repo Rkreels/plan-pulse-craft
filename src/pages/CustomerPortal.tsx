@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { HexColorPicker } from "react-colorful";
 import { Badge } from "@/components/ui/badge";
-import { Download, Upload, Settings, Eye, BarChart3 } from "lucide-react";
+import { Download, Upload, Settings, Eye, BarChart3, Users, MessageSquare, Target } from "lucide-react";
 import { toast } from "sonner";
 
 const CustomerPortal = () => {
