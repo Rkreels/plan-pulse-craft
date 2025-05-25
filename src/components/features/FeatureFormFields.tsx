@@ -192,14 +192,14 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
         <div className="space-y-2">
           <Label htmlFor="epicId">Epic</Label>
           <Select 
-            value={formData.epicId || "unassigned"} 
-            onValueChange={(value) => onChange("epicId", value === "unassigned" ? "" : value)}
+            value={formData.epicId || "none"} 
+            onValueChange={(value) => onChange("epicId", value === "none" ? "" : value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select epic (optional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="unassigned">No Epic</SelectItem>
+              <SelectItem value="none">No Epic</SelectItem>
               {epics.map((epic) => (
                 <SelectItem key={epic.id} value={epic.id}>{epic.title}</SelectItem>
               ))}
@@ -210,14 +210,14 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
         <div className="space-y-2">
           <Label htmlFor="releaseId">Release</Label>
           <Select 
-            value={formData.releaseId || "unassigned"} 
-            onValueChange={(value) => onChange("releaseId", value === "unassigned" ? "" : value)}
+            value={formData.releaseId || "none"} 
+            onValueChange={(value) => onChange("releaseId", value === "none" ? "" : value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select release (optional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="unassigned">No Release</SelectItem>
+              <SelectItem value="none">No Release</SelectItem>
               {releases.map((release) => (
                 <SelectItem key={release.id} value={release.id}>{release.name}</SelectItem>
               ))}
