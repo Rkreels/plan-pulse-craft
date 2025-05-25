@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
+import { FeedbackFilters } from "./FeedbackFilters";
+import { Download, Filter } from "lucide-react";
 
 interface FeedbackItem {
   id: string;
@@ -64,6 +65,16 @@ export function CustomerFeedbackPortal() {
     }
   ]);
 
+  const [filters, setFilters] = useState({
+    search: "",
+    category: "all",
+    status: "all",
+    dateRange: {},
+    minVotes: "",
+    sortBy: "votes",
+    sortOrder: "desc" as "asc" | "desc"
+  });
+
   const [portalConfig, setPortalConfig] = useState({
     allowAnonymous: true,
     requireApproval: true,
@@ -78,8 +89,6 @@ export function CustomerFeedbackPortal() {
     description: "",
     category: "Feature Request"
   });
-
-  const [filterCategory, setFilterCategory] = useState<string>("All");
 
   const handleConfigChange = (key: keyof typeof portalConfig, value: boolean) => {
     setPortalConfig(prev => ({
@@ -144,11 +153,93 @@ export function CustomerFeedbackPortal() {
     );
   };
 
-  const filteredFeedback = filterCategory === "All" 
-    ? feedbackItems 
-    : feedbackItems.filter(item => item.category === filterCategory);
+  // Enhanced filtering and sorting logic
+  const getFilteredAndSortedFeedback = () => {
+    let filtered = feedbackItems.filter(item => {
+      const matchesSearch = !filters.search || 
+        item.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+        item.description.toLowerCase().includes(filters.search.toLowerCase());
+      
+      const matchesCategory = filters.category === "all" || item.category === filters.category;
+      const matchesStatus = filters.status === "all" || item.status === filters.status;
+      const matchesMinVotes = !filters.minVotes || item.votes >= parseInt(filters.minVotes);
 
-  const sortedFeedback = [...filteredFeedback].sort((a, b) => b.votes - a.votes);
+      return matchesSearch && matchesCategory && matchesStatus && matchesMinVotes;
+    });
+
+    // Sort the filtered results
+    filtered.sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (filters.sortBy) {
+        case "votes":
+          aValue = a.votes;
+          bValue = b.votes;
+          break;
+        case "date":
+          aValue = a.date.getTime();
+          bValue = b.date.getTime();
+          break;
+        case "title":
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case "status":
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        default:
+          aValue = a.votes;
+          bValue = b.votes;
+      }
+
+      if (filters.sortOrder === "asc") {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    return filtered;
+  };
+
+  const filteredFeedback = getFilteredAndSortedFeedback();
+
+  const clearFilters = () => {
+    setFilters({
+      search: "",
+      category: "all",
+      status: "all",
+      dateRange: {},
+      minVotes: "",
+      sortBy: "votes",
+      sortOrder: "desc"
+    });
+  };
+
+  const exportFeedback = () => {
+    const data = filteredFeedback.map(item => ({
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      status: item.status,
+      votes: item.votes,
+      date: item.date.toISOString()
+    }));
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'feedback-export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export completed",
+      description: "Feedback data has been exported successfully"
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -215,32 +306,34 @@ export function CustomerFeedbackPortal() {
         
         <TabsContent value="view" className="space-y-4">
           <div className="flex justify-between items-center">
-            <div className="space-x-2">
-              <span className="text-sm font-medium">Filter:</span>
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All">All Categories</SelectItem>
-                  <SelectItem value="Feature Request">Feature Requests</SelectItem>
-                  <SelectItem value="Bug Report">Bug Reports</SelectItem>
-                  <SelectItem value="Improvement">Improvements</SelectItem>
-                  <SelectItem value="Question">Questions</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+            <h3 className="text-lg font-semibold">Customer Feedback</h3>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={exportFeedback} className="gap-2">
+                <Download className="h-4 w-4" />
+                Export
+              </Button>
             </div>
-            <span className="text-sm text-muted-foreground">{sortedFeedback.length} items</span>
+          </div>
+
+          <FeedbackFilters 
+            filters={filters}
+            onFiltersChange={setFilters}
+            onClearFilters={clearFilters}
+          />
+          
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">
+              {filteredFeedback.length} of {feedbackItems.length} items
+            </span>
           </div>
           
           <div className="space-y-4">
-            {sortedFeedback.length > 0 ? (
-              sortedFeedback.map(item => (
+            {filteredFeedback.length > 0 ? (
+              filteredFeedback.map(item => (
                 <Card key={item.id}>
                   <CardContent className="pt-4">
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-semibold">{item.title}</h3>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="outline">{item.category}</Badge>
@@ -259,7 +352,7 @@ export function CustomerFeedbackPortal() {
                         </p>
                       </div>
                       
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center ml-4">
                         <Button 
                           variant="outline" 
                           size="sm" 
@@ -276,8 +369,12 @@ export function CustomerFeedbackPortal() {
               ))
             ) : (
               <div className="text-center p-10">
+                <Filter className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-xl font-semibold mb-2">No feedback found</h3>
-                <p className="text-muted-foreground">No feedback matching your filters</p>
+                <p className="text-muted-foreground">No feedback matching your current filters</p>
+                <Button variant="outline" onClick={clearFilters} className="mt-4">
+                  Clear Filters
+                </Button>
               </div>
             )}
           </div>
