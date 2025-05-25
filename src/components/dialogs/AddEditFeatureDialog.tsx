@@ -97,9 +97,13 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
       assignedTo: formData.assignedTo || [],
     };
     
-    const newFeature = {
+    const newFeature: Feature = {
       id: feature?.id || uuidv4(), // Generate ID if new
       ...processedData,
+      title: processedData.title || "",
+      description: processedData.description || "",
+      status: processedData.status as Feature['status'] || "idea",
+      priority: processedData.priority as Feature['priority'] || "medium",
       effort: Number(processedData.effort) || 5,
       value: Number(processedData.value) || 5,
       votes: Number(processedData.votes) || 0,
@@ -108,9 +112,11 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
       dependencies: processedData.dependencies || [],
       acceptanceCriteria: processedData.acceptanceCriteria || [],
       feedback: processedData.feedback || [],
+      assignedTo: processedData.assignedTo || [],
       updatedAt: new Date(),
       createdAt: feature?.createdAt || new Date(),
-    } as Feature;
+      workspaceId: processedData.workspaceId || "w1",
+    };
     
     onSave(newFeature);
     onOpenChange(false);

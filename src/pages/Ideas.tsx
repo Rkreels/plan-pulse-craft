@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { PageTitle } from "@/components/common/PageTitle";
 import { Button } from "@/components/ui/button";
@@ -22,10 +21,10 @@ const Ideas = () => {
   const ideaFeatures = features.filter(feature => feature.status === "idea");
   
   const handleAddIdea = (feature: Feature) => {
-    const newIdea = {
+    const newIdea: Feature = {
       ...feature,
       id: feature.id || uuidv4(),
-      status: "idea",
+      status: "idea" as const,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -35,9 +34,9 @@ const Ideas = () => {
   };
   
   const handlePromoteToFeature = (idea: Feature) => {
-    const updatedFeature = {
+    const updatedFeature: Feature = {
       ...idea,
-      status: "backlog",
+      status: "backlog" as const,
       updatedAt: new Date()
     };
     
