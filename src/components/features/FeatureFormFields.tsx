@@ -50,6 +50,7 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
 
   return (
     <div className="space-y-4">
+      {/* Title and Description fields */}
       <div className="space-y-2">
         <Label htmlFor="title">Feature Title</Label>
         <Input 
@@ -82,6 +83,7 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
         />
       </div>
 
+      {/* Acceptance Criteria */}
       <div className="space-y-2">
         <Label>Acceptance Criteria</Label>
         <div className="flex gap-2">
@@ -117,11 +119,12 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
         )}
       </div>
 
+      {/* Status and Priority */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
           <Select 
-            value={formData.status} 
+            value={formData.status || "idea"} 
             onValueChange={(value) => onChange("status", value)}
           >
             <SelectTrigger>
@@ -142,7 +145,7 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
         <div className="space-y-2">
           <Label htmlFor="priority">Priority</Label>
           <Select 
-            value={formData.priority} 
+            value={formData.priority || "medium"} 
             onValueChange={(value) => onChange("priority", value)}
           >
             <SelectTrigger>
@@ -158,6 +161,7 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
         </div>
       </div>
 
+      {/* Effort and Value */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="effort">Effort (1-10)</Label>
@@ -183,18 +187,19 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
         </div>
       </div>
 
+      {/* Epic and Release */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="epicId">Epic</Label>
           <Select 
-            value={formData.epicId || "none"} 
-            onValueChange={(value) => onChange("epicId", value)}
+            value={formData.epicId || "unassigned"} 
+            onValueChange={(value) => onChange("epicId", value === "unassigned" ? "" : value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select epic (optional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">None</SelectItem>
+              <SelectItem value="unassigned">No Epic</SelectItem>
               {epics.map((epic) => (
                 <SelectItem key={epic.id} value={epic.id}>{epic.title}</SelectItem>
               ))}
@@ -205,14 +210,14 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
         <div className="space-y-2">
           <Label htmlFor="releaseId">Release</Label>
           <Select 
-            value={formData.releaseId || "none"} 
-            onValueChange={(value) => onChange("releaseId", value)}
+            value={formData.releaseId || "unassigned"} 
+            onValueChange={(value) => onChange("releaseId", value === "unassigned" ? "" : value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select release (optional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">None</SelectItem>
+              <SelectItem value="unassigned">No Release</SelectItem>
               {releases.map((release) => (
                 <SelectItem key={release.id} value={release.id}>{release.name}</SelectItem>
               ))}
@@ -221,6 +226,7 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
         </div>
       </div>
 
+      {/* Tags */}
       <div className="space-y-2">
         <Label>Tags</Label>
         <div className="flex gap-2">

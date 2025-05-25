@@ -46,11 +46,11 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
   // Load feature data when editing
   useEffect(() => {
     if (feature) {
-      // Convert empty values to "none" for select components
+      // Convert empty values to proper defaults for select components
       const processedFeature = {
         ...feature,
-        epicId: feature.epicId || "none",
-        releaseId: feature.releaseId || "none",
+        epicId: feature.epicId || "",
+        releaseId: feature.releaseId || "",
         acceptanceCriteria: feature.acceptanceCriteria || [],
         assignedTo: Array.isArray(feature.assignedTo) ? feature.assignedTo : 
                     feature.assignedTo ? [feature.assignedTo] : [],
@@ -73,8 +73,8 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
         feedback: [],
         dependencies: [],
         progress: 0,
-        epicId: "none",
-        releaseId: "none",
+        epicId: "",
+        releaseId: "",
         createdAt: new Date(),
         updatedAt: new Date(),
         workspaceId: "w1",
@@ -83,39 +83,31 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
   }, [feature, currentUser, open]);
 
   const handleChange = (field: string, value: any) => {
-    // Convert "none" value to null or empty string as appropriate
-    const processedValue = (field === "epicId" || field === "releaseId") && value === "none" ? "" : value;
-    setFormData((prev) => ({ ...prev, [field]: processedValue }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = () => {
-    // Process the form data for submission
-    const processedData = {
-      ...formData,
-      epicId: formData.epicId === "none" ? "" : formData.epicId,
-      releaseId: formData.releaseId === "none" ? "" : formData.releaseId,
-      assignedTo: formData.assignedTo || [],
-    };
-    
     const newFeature: Feature = {
-      id: feature?.id || uuidv4(), // Generate ID if new
-      ...processedData,
-      title: processedData.title || "",
-      description: processedData.description || "",
-      status: processedData.status as Feature['status'] || "idea",
-      priority: processedData.priority as Feature['priority'] || "medium",
-      effort: Number(processedData.effort) || 5,
-      value: Number(processedData.value) || 5,
-      votes: Number(processedData.votes) || 0,
-      progress: Number(processedData.progress) || 0,
-      tags: processedData.tags || [],
-      dependencies: processedData.dependencies || [],
-      acceptanceCriteria: processedData.acceptanceCriteria || [],
-      feedback: processedData.feedback || [],
-      assignedTo: processedData.assignedTo || [],
+      id: feature?.id || uuidv4(),
+      title: formData.title || "",
+      description: formData.description || "",
+      userStory: formData.userStory || "",
+      acceptanceCriteria: formData.acceptanceCriteria || [],
+      status: (formData.status as Feature['status']) || "idea",
+      priority: (formData.priority as Feature['priority']) || "medium",
+      effort: Number(formData.effort) || 5,
+      value: Number(formData.value) || 5,
+      votes: Number(formData.votes) || 0,
+      progress: Number(formData.progress) || 0,
+      tags: formData.tags || [],
+      dependencies: formData.dependencies || [],
+      feedback: formData.feedback || [],
+      assignedTo: formData.assignedTo || [],
+      epicId: formData.epicId || "",
+      releaseId: formData.releaseId || "",
       updatedAt: new Date(),
       createdAt: feature?.createdAt || new Date(),
-      workspaceId: processedData.workspaceId || "w1",
+      workspaceId: formData.workspaceId || "w1",
     };
     
     onSave(newFeature);
