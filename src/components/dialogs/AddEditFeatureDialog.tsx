@@ -13,6 +13,8 @@ import { Feature } from "@/types";
 import { useAppContext } from "@/contexts/AppContext";
 import FeatureFormFields from "@/components/features/FeatureFormFields";
 import { v4 as uuidv4 } from "uuid";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface AddEditFeatureDialogProps {
   open: boolean;
@@ -23,6 +25,7 @@ interface AddEditFeatureDialogProps {
 
 export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: AddEditFeatureDialogProps) {
   const { currentUser, epics, releases } = useAppContext();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<Feature>>({
     title: "",
     description: "",
@@ -86,35 +89,56 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
-    const newFeature: Feature = {
-      id: feature?.id || uuidv4(),
-      title: formData.title || "",
-      description: formData.description || "",
-      userStory: formData.userStory || "",
-      acceptanceCriteria: formData.acceptanceCriteria || [],
-      status: (formData.status as Feature['status']) || "idea",
-      priority: (formData.priority as Feature['priority']) || "medium",
-      effort: Number(formData.effort) || 5,
-      value: Number(formData.value) || 5,
-      votes: Number(formData.votes) || 0,
-      progress: Number(formData.progress) || 0,
-      tags: formData.tags || [],
-      dependencies: formData.dependencies || [],
-      feedback: formData.feedback || [],
-      assignedTo: formData.assignedTo || [],
-      epicId: formData.epicId || "",
-      releaseId: formData.releaseId || "",
-      updatedAt: new Date(),
-      createdAt: feature?.createdAt || new Date(),
-      workspaceId: formData.workspaceId || "w1",
-    };
+  const handleSubmit = async () => {
+    // Validate required fields
+    if (!formData.title?.trim()) {
+      toast.error("Feature title is required");
+      return;
+    }
     
-    onSave(newFeature);
-    onOpenChange(false);
+    if (!formData.description?.trim()) {
+      toast.error("Feature description is required");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const newFeature: Feature = {
+        id: feature?.id || uuidv4(),
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        userStory: formData.userStory?.trim() || "",
+        acceptanceCriteria: formData.acceptanceCriteria || [],
+        status: (formData.status as Feature['status']) || "idea",
+        priority: (formData.priority as Feature['priority']) || "medium",
+        effort: Number(formData.effort) || 5,
+        value: Number(formData.value) || 5,
+        votes: Number(formData.votes) || 0,
+        progress: Number(formData.progress) || 0,
+        tags: formData.tags || [],
+        dependencies: formData.dependencies || [],
+        feedback: formData.feedback || [],
+        assignedTo: formData.assignedTo || [],
+        epicId: formData.epicId || "",
+        releaseId: formData.releaseId || "",
+        updatedAt: new Date(),
+        createdAt: feature?.createdAt || new Date(),
+        workspaceId: formData.workspaceId || "w1",
+      };
+      
+      await onSave(newFeature);
+      onOpenChange(false);
+      toast.success(feature ? "Feature updated successfully" : "Feature created successfully");
+    } catch (error) {
+      toast.error(feature ? "Failed to update feature" : "Failed to create feature");
+      console.error("Feature save error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const isFormValid = formData.title && formData.description;
+  const isFormValid = formData.title?.trim() && formData.description?.trim();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -134,8 +158,18 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
         />
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={!isFormValid}>
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={!isFormValid || isLoading}
+          >
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {feature ? "Update Feature" : "Create Feature"}
           </Button>
         </DialogFooter>

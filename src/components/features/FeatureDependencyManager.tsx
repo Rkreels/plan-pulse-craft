@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Plus, Trash2 } from "lucide-react";
+import { Check, X, Plus, Trash2, AlertCircle } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 import { toast } from "sonner";
 
@@ -16,38 +16,36 @@ interface Dependency {
 }
 
 export function FeatureDependencyManager() {
-  const { features } = useAppContext();
-  const [dependencies, setDependencies] = useState<Dependency[]>([
-    {
-      id: "d1",
-      featureId: features[0]?.id || "f1",
-      dependsOnId: features[1]?.id || "f2",
-      type: "blocks"
-    },
-    {
-      id: "d2",
-      featureId: features[2]?.id || "f3",
-      dependsOnId: features[0]?.id || "f1",
-      type: "required_by"
-    },
-    {
-      id: "d3",
-      featureId: features[1]?.id || "f2",
-      dependsOnId: features[3]?.id || "f4",
-      type: "related_to"
-    }
-  ]);
-  
+  const { features, updateFeature } = useAppContext();
+  const [dependencies, setDependencies] = useState<Dependency[]>([]);
   const [newDependency, setNewDependency] = useState({
     featureId: "",
     dependsOnId: "",
     type: "blocks" as "blocks" | "required_by" | "related_to"
   });
-  
   const [showNewForm, setShowNewForm] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
-  const handleAddDependency = () => {
+  // Initialize dependencies from features
+  useEffect(() => {
+    const existingDependencies: Dependency[] = [];
+    features.forEach(feature => {
+      if (feature.dependencies && feature.dependencies.length > 0) {
+        feature.dependencies.forEach(depId => {
+          existingDependencies.push({
+            id: `${feature.id}-${depId}`,
+            featureId: feature.id,
+            dependsOnId: depId,
+            type: "blocks"
+          });
+        });
+      }
+    });
+    setDependencies(existingDependencies);
+  }, [features]);
+  
+  const handleAddDependency = async () => {
     if (!newDependency.featureId || !newDependency.dependsOnId || !newDependency.type) {
       toast.error("Please fill in all fields");
       return;
@@ -69,30 +67,71 @@ export function FeatureDependencyManager() {
       return;
     }
     
-    const dependency: Dependency = {
-      id: `d-${Date.now()}`,
-      ...newDependency
-    };
+    setIsLoading(true);
     
-    setDependencies([...dependencies, dependency]);
-    setNewDependency({
-      featureId: "",
-      dependsOnId: "",
-      type: "blocks"
-    });
-    setShowNewForm(false);
-    
-    toast.success("Dependency added successfully");
+    try {
+      const dependency: Dependency = {
+        id: `${newDependency.featureId}-${newDependency.dependsOnId}`,
+        ...newDependency
+      };
+      
+      // Update the feature with the new dependency
+      const feature = features.find(f => f.id === newDependency.featureId);
+      if (feature) {
+        const updatedFeature = {
+          ...feature,
+          dependencies: [...(feature.dependencies || []), newDependency.dependsOnId],
+          updatedAt: new Date()
+        };
+        updateFeature(updatedFeature);
+      }
+      
+      setDependencies([...dependencies, dependency]);
+      setNewDependency({
+        featureId: "",
+        dependsOnId: "",
+        type: "blocks"
+      });
+      setShowNewForm(false);
+      
+      toast.success("Dependency added successfully");
+    } catch (error) {
+      toast.error("Failed to add dependency");
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  const handleDeleteDependency = (id: string) => {
-    setDependencies(dependencies.filter(d => d.id !== id));
-    toast.success("Dependency removed");
+  const handleDeleteDependency = async (id: string) => {
+    setIsLoading(true);
+    
+    try {
+      const dependency = dependencies.find(d => d.id === id);
+      if (dependency) {
+        // Update the feature to remove the dependency
+        const feature = features.find(f => f.id === dependency.featureId);
+        if (feature) {
+          const updatedFeature = {
+            ...feature,
+            dependencies: (feature.dependencies || []).filter(depId => depId !== dependency.dependsOnId),
+            updatedAt: new Date()
+          };
+          updateFeature(updatedFeature);
+        }
+      }
+      
+      setDependencies(dependencies.filter(d => d.id !== id));
+      toast.success("Dependency removed");
+    } catch (error) {
+      toast.error("Failed to remove dependency");
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const getFeatureTitleById = (id: string) => {
     const feature = features.find(f => f.id === id);
-    return feature?.title || id;
+    return feature?.title || `Feature ${id}`;
   };
 
   const getDependencyTypeLabel = (type: string) => {
@@ -111,23 +150,45 @@ export function FeatureDependencyManager() {
   const featureDependencies = selectedFeature 
     ? dependencies.filter(d => d.featureId === selectedFeature || d.dependsOnId === selectedFeature)
     : dependencies;
+
+  // Get available features for selection (excluding those with empty IDs)
+  const availableFeatures = features.filter(f => f.id && f.id.trim() !== "");
   
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
-        <h2 className="text-xl font-semibold">Feature Dependencies</h2>
-        <Button onClick={() => setShowNewForm(true)} disabled={showNewForm}>
+        <div>
+          <h2 className="text-xl font-semibold">Feature Dependencies</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage relationships between features to track blockers and requirements
+          </p>
+        </div>
+        <Button 
+          onClick={() => setShowNewForm(true)} 
+          disabled={showNewForm || isLoading || availableFeatures.length < 2}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Dependency
         </Button>
       </div>
+
+      {availableFeatures.length < 2 && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-amber-800">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">You need at least 2 features to create dependencies.</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       
-      <Card className={showNewForm ? "border-primary" : ""}>
-        <CardHeader className="pb-3">
-          <CardTitle>Create Dependency</CardTitle>
-          <CardDescription>Define relationships between features</CardDescription>
-        </CardHeader>
-        {showNewForm && (
+      {showNewForm && availableFeatures.length >= 2 && (
+        <Card className="border-primary">
+          <CardHeader className="pb-3">
+            <CardTitle>Create Dependency</CardTitle>
+            <CardDescription>Define relationships between features</CardDescription>
+          </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
               <div>
@@ -135,12 +196,13 @@ export function FeatureDependencyManager() {
                 <Select 
                   value={newDependency.featureId} 
                   onValueChange={(value) => setNewDependency({ ...newDependency, featureId: value })}
+                  disabled={isLoading}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select feature" />
                   </SelectTrigger>
                   <SelectContent>
-                    {features.map((feature) => (
+                    {availableFeatures.map((feature) => (
                       <SelectItem key={feature.id} value={feature.id}>{feature.title}</SelectItem>
                     ))}
                   </SelectContent>
@@ -154,6 +216,7 @@ export function FeatureDependencyManager() {
                   onValueChange={(value: "blocks" | "required_by" | "related_to") => 
                     setNewDependency({ ...newDependency, type: value })
                   }
+                  disabled={isLoading}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
@@ -171,12 +234,13 @@ export function FeatureDependencyManager() {
                 <Select 
                   value={newDependency.dependsOnId} 
                   onValueChange={(value) => setNewDependency({ ...newDependency, dependsOnId: value })}
+                  disabled={isLoading}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select feature" />
                   </SelectTrigger>
                   <SelectContent>
-                    {features
+                    {availableFeatures
                       .filter(feature => feature.id !== newDependency.featureId)
                       .map((feature) => (
                         <SelectItem key={feature.id} value={feature.id}>{feature.title}</SelectItem>
@@ -186,19 +250,19 @@ export function FeatureDependencyManager() {
               </div>
               
               <div className="flex gap-2 md:col-span-3">
-                <Button onClick={handleAddDependency}>
+                <Button onClick={handleAddDependency} disabled={isLoading}>
                   <Check className="h-4 w-4 mr-2" />
-                  Add Dependency
+                  {isLoading ? "Adding..." : "Add Dependency"}
                 </Button>
-                <Button variant="outline" onClick={() => setShowNewForm(false)}>
+                <Button variant="outline" onClick={() => setShowNewForm(false)} disabled={isLoading}>
                   <X className="h-4 w-4 mr-2" />
                   Cancel
                 </Button>
               </div>
             </div>
           </CardContent>
-        )}
-      </Card>
+        </Card>
+      )}
       
       <div className="mt-6">
         <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
@@ -208,7 +272,7 @@ export function FeatureDependencyManager() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">All Features</SelectItem>
-              {features.map((feature) => (
+              {availableFeatures.map((feature) => (
                 <SelectItem key={feature.id} value={feature.id}>{feature.title}</SelectItem>
               ))}
             </SelectContent>
@@ -237,6 +301,7 @@ export function FeatureDependencyManager() {
                       size="sm" 
                       className="text-destructive hover:text-destructive"
                       onClick={() => handleDeleteDependency(dependency.id)}
+                      disabled={isLoading}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -253,7 +318,7 @@ export function FeatureDependencyManager() {
                 "This feature has no dependencies" : 
                 "Start by adding your first feature dependency"}
             </p>
-            {!showNewForm && (
+            {!showNewForm && availableFeatures.length >= 2 && (
               <Button className="mt-4" onClick={() => setShowNewForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Dependency

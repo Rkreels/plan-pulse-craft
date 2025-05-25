@@ -23,28 +23,47 @@ export function Sidebar() {
   const workspaceItems = getWorkspaceItems();
 
   const isActive = (path: string) => {
-    // Check if the current path starts with the given path
-    // This handles active state for nested routes like /features/123
+    // Exact match for home page
     if (path === '/') {
       return location.pathname === '/';
     }
-    return location.pathname.startsWith(path);
+    
+    // For other paths, check if current path starts with the menu path
+    // This handles nested routes properly
+    const currentPath = location.pathname;
+    
+    // Handle special cases for better UX
+    if (path === '/features' && currentPath.startsWith('/ideas')) {
+      return false; // Ideas should not highlight Features
+    }
+    
+    if (path === '/ideas' && currentPath.startsWith('/features')) {
+      return false; // Features should not highlight Ideas
+    }
+    
+    return currentPath.startsWith(path);
   };
 
-  // Filter menu items based on user role
+  // Filter menu items based on user role with fallback
   const filteredMenuItems = menuItems.filter(item => 
-    currentUser && item.roles.includes(currentUser.role)
+    currentUser ? item.roles.includes(currentUser.role) : false
   );
 
   const filteredWorkspaceItems = workspaceItems.filter(item => 
-    currentUser && item.roles.includes(currentUser.role)
+    currentUser ? item.roles.includes(currentUser.role) : false
   );
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
 
   return (
     <UISidebar>
       <SidebarContent>
-        <div className="flex items-center justify-center py-4">
-          <h1 className="text-xl font-bold text-primary">PlanPulseCraft</h1>
+        <div className="flex items-center justify-center py-4 border-b">
+          <h1 className="text-xl font-bold text-primary cursor-pointer" onClick={() => handleNavigation('/')}>
+            PlanPulseCraft
+          </h1>
         </div>
         
         <SidebarGroup>
@@ -54,12 +73,14 @@ export function Sidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         
-        <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarItems items={filteredWorkspaceItems} isActive={isActive} />
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {filteredWorkspaceItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarItems items={filteredWorkspaceItems} isActive={isActive} />
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         
         <SidebarGroup className="mt-auto">
           <SidebarItems 

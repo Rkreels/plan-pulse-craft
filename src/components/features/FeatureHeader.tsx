@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { AddEditFeatureDialog } from "@/components/dialogs/AddEditFeatureDialog";
 import { Feature } from "@/types";
@@ -19,20 +18,20 @@ const FeatureHeader: React.FC<FeatureHeaderProps> = ({
 }) => {
   return (
     <div className="flex justify-between items-center my-4">
-      <div></div>
-      <Dialog open={newFeatureDialogOpen} onOpenChange={setNewFeatureDialogOpen}>
-        <DialogTrigger asChild>
-          <Button>
-            <Plus size={16} className="mr-2" />
-            New Feature
-          </Button>
-        </DialogTrigger>
-        <AddEditFeatureDialog
-          open={newFeatureDialogOpen}
-          onOpenChange={setNewFeatureDialogOpen}
-          onSave={onAddFeature}
-        />
-      </Dialog>
+      <div className="text-sm text-muted-foreground">
+        Manage your product features and track their progress
+      </div>
+      
+      <Button onClick={() => setNewFeatureDialogOpen(true)}>
+        <Plus size={16} className="mr-2" />
+        New Feature
+      </Button>
+
+      <AddEditFeatureDialog
+        open={newFeatureDialogOpen}
+        onOpenChange={setNewFeatureDialogOpen}
+        onSave={onAddFeature}
+      />
     </div>
   );
 };
