@@ -20,6 +20,11 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
   const [currentTag, setCurrentTag] = useState("");
   const [currentCriterion, setCurrentCriterion] = useState("");
 
+  // Add console logging to debug empty values
+  console.log("FeatureFormFields - epics:", epics);
+  console.log("FeatureFormFields - releases:", releases);
+  console.log("FeatureFormFields - formData:", formData);
+
   const addTag = () => {
     if (currentTag.trim() && !formData.tags?.includes(currentTag.trim())) {
       onChange("tags", [...(formData.tags || []), currentTag.trim()]);
@@ -47,6 +52,10 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
       (formData.acceptanceCriteria || []).filter((_, i) => i !== index)
     );
   };
+
+  // Filter out any epics or releases with empty IDs
+  const validEpics = epics.filter(epic => epic.id && epic.id.trim() !== "");
+  const validReleases = releases.filter(release => release.id && release.id.trim() !== "");
 
   return (
     <div className="space-y-4">
@@ -200,7 +209,7 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">No Epic</SelectItem>
-              {epics.map((epic) => (
+              {validEpics.map((epic) => (
                 <SelectItem key={epic.id} value={epic.id}>{epic.title}</SelectItem>
               ))}
             </SelectContent>
@@ -218,7 +227,7 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">No Release</SelectItem>
-              {releases.map((release) => (
+              {validReleases.map((release) => (
                 <SelectItem key={release.id} value={release.id}>{release.name}</SelectItem>
               ))}
             </SelectContent>
