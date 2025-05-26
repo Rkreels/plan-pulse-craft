@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BarChart3, Plus, Settings } from "lucide-react";
+import { BarChart3, Plus, Settings, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AddEditRoadmapViewDialog } from "@/components/dialogs/AddEditRoadmapViewDialog";
 import { RoadmapView } from "@/types";
@@ -33,7 +33,8 @@ const Roadmap = () => {
     goals, 
     initiatives, 
     releases, 
-    epics 
+    epics,
+    features
   } = useAppContext();
 
   const [isAddEditViewDialogOpen, setIsAddEditViewDialogOpen] = useState(false);
@@ -50,22 +51,56 @@ const Roadmap = () => {
   };
 
   const handleSaveView = (view: RoadmapView) => {
-    // In a real app we would update or add to the roadmapViews state
-    // For now, let's just set it as current and show a toast
     setCurrentView(view);
     toast.success(selectedView ? "View updated" : "New view created");
   };
 
+  // Get actual feature count for an epic
+  const getEpicFeatureCount = (epicId: string) => {
+    return features.filter(feature => feature.epicId === epicId).length;
+  };
+
+  // Get actual epic feature count
+  const getReleaseFeatureCount = (releaseId: string) => {
+    return features.filter(feature => feature.releaseId === releaseId).length;
+  };
+
+  // Apply view filters if any
+  const getFilteredData = () => {
+    let filteredEpics = [...epics];
+    let filteredGoals = [...goals];
+    let filteredReleases = [...releases];
+
+    if (currentView?.filters) {
+      currentView.filters.forEach(filter => {
+        switch (filter.field) {
+          case 'status':
+            filteredEpics = filteredEpics.filter(epic => epic.status === filter.value);
+            filteredGoals = filteredGoals.filter(goal => goal.status === filter.value);
+            filteredReleases = filteredReleases.filter(release => release.status === filter.value);
+            break;
+          case 'priority':
+            // Could filter by priority if we add priority to epics/goals
+            break;
+        }
+      });
+    }
+
+    return { filteredEpics, filteredGoals, filteredReleases };
+  };
+
   // Simple timeline view of goals, epics, and releases
   const renderTimelineView = () => {
+    const { filteredEpics, filteredGoals, filteredReleases } = getFilteredData();
+
     // Sort items by date
-    const sortedGoals = [...goals].sort((a, b) => {
+    const sortedGoals = [...filteredGoals].sort((a, b) => {
       const dateA = a.targetDate ? new Date(a.targetDate).getTime() : 0;
       const dateB = b.targetDate ? new Date(b.targetDate).getTime() : 0;
       return dateA - dateB;
     });
     
-    const sortedReleases = [...releases].sort((a, b) => {
+    const sortedReleases = [...filteredReleases].sort((a, b) => {
       return new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime();
     });
     
@@ -115,8 +150,17 @@ const Roadmap = () => {
                       return targetDate >= quarter.start && targetDate <= quarter.end;
                     })
                     .map(goal => (
-                      <div key={goal.id} className="mb-2 p-2 bg-background rounded-md border">
-                        <div className="font-medium text-sm">{goal.title}</div>
+                      <div key={goal.id} className="mb-2 p-2 bg-background rounded-md border group cursor-pointer hover:border-primary">
+                        <div className="flex justify-between items-start">
+                          <div className="font-medium text-sm flex-1">{goal.title}</div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
                         <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
                           <span>{goal.status.replace('_', ' ')}</span>
                           <span>{goal.progress}%</span>
@@ -143,8 +187,19 @@ const Roadmap = () => {
                       return releaseDate >= quarter.start && releaseDate <= quarter.end;
                     })
                     .map(release => (
-                      <div key={release.id} className="mb-2 p-2 bg-background rounded-md border">
-                        <div className="font-medium text-sm">{release.name} <span className="text-xs">v{release.version}</span></div>
+                      <div key={release.id} className="mb-2 p-2 bg-background rounded-md border group cursor-pointer hover:border-primary">
+                        <div className="flex justify-between items-start">
+                          <div className="font-medium text-sm flex-1">
+                            {release.name} <span className="text-xs">v{release.version}</span>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
                         <div className="flex items-center justify-between mt-1 text-xs">
                           <Badge className={
                             release.status === "completed" ? "bg-green-500" :
@@ -154,7 +209,10 @@ const Roadmap = () => {
                           }>
                             {release.status}
                           </Badge>
-                          <span className="text-muted-foreground">{new Date(release.releaseDate).toLocaleDateString()}</span>
+                          <span className="text-muted-foreground">{getReleaseFeatureCount(release.id)} features</span>
+                        </div>
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          {new Date(release.releaseDate).toLocaleDateString()}
                         </div>
                       </div>
                     ))}
@@ -171,22 +229,38 @@ const Roadmap = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {quarters.map((quarter, i) => (
                 <div key={i} className="border rounded-md p-3 h-full">
-                  {epics
+                  {filteredEpics
                     .filter(e => {
                       if (!e.targetDate) return i === 0;
                       const targetDate = new Date(e.targetDate);
                       return targetDate >= quarter.start && targetDate <= quarter.end;
                     })
-                    .map(epic => (
-                      <div key={epic.id} className="mb-2 p-2 bg-background rounded-md border">
-                        <div className="font-medium text-sm">{epic.title}</div>
-                        <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
-                          <span>{epic.status.replace('_', ' ')}</span>
-                          <span>{epic.progress}%</span>
+                    .map(epic => {
+                      const featureCount = getEpicFeatureCount(epic.id);
+                      return (
+                        <div key={epic.id} className="mb-2 p-2 bg-background rounded-md border group cursor-pointer hover:border-primary">
+                          <div className="flex justify-between items-start">
+                            <div className="font-medium text-sm flex-1">{epic.title}</div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
+                            <span>{epic.status.replace('_', ' ')}</span>
+                            <span>{featureCount} feature{featureCount !== 1 ? 's' : ''}</span>
+                          </div>
+                          <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
+                            <span>Progress</span>
+                            <span>{epic.progress}%</span>
+                          </div>
+                          <Progress value={epic.progress} className="h-1 mt-1" />
                         </div>
-                        <Progress value={epic.progress} className="h-1 mt-1" />
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               ))}
             </div>
@@ -198,27 +272,13 @@ const Roadmap = () => {
 
   // Board view
   const renderBoardView = () => {
-    const getStatusColumn = (status: string) => {
-      switch (status) {
-        case "not_started":
-          return "Planned";
-        case "in_progress":
-          return "In Progress";
-        case "completed":
-          return "Completed";
-        case "at_risk":
-          return "At Risk";
-        default:
-          return "Backlog";
-      }
-    };
+    const { filteredEpics } = getFilteredData();
 
-    // Get all epics grouped by status
     const epicsByStatus = {
-      "Planned": epics.filter(epic => epic.status === "planned" || epic.status === "backlog"),
-      "In Progress": epics.filter(epic => epic.status === "in_progress"),
-      "Review": epics.filter(epic => epic.status === "review"),
-      "Completed": epics.filter(epic => epic.status === "completed"),
+      "Planned": filteredEpics.filter(epic => epic.status === "planned" || epic.status === "backlog"),
+      "In Progress": filteredEpics.filter(epic => epic.status === "in_progress"),
+      "Review": filteredEpics.filter(epic => epic.status === "review"),
+      "Completed": filteredEpics.filter(epic => epic.status === "completed"),
     };
 
     return (
@@ -228,15 +288,35 @@ const Roadmap = () => {
             <div key={columnName} className="flex flex-col">
               <h3 className="font-semibold mb-2 px-2">{columnName} <Badge>{columnEpics.length}</Badge></h3>
               <div className="bg-muted rounded-md p-2 flex-1 min-h-[200px]">
-                {columnEpics.map(epic => (
-                  <Card key={epic.id} className="mb-2 cursor-pointer hover:border-primary">
-                    <CardContent className="p-3">
-                      <div className="font-medium text-sm">{epic.title}</div>
-                      <div className="text-xs text-muted-foreground mt-1">{epic.features ? epic.features.length : 0} features</div>
-                      <Progress value={epic.progress} className="h-1 mt-2" />
-                    </CardContent>
-                  </Card>
-                ))}
+                {columnEpics.map(epic => {
+                  const featureCount = getEpicFeatureCount(epic.id);
+                  return (
+                    <Card key={epic.id} className="mb-2 cursor-pointer hover:border-primary group">
+                      <CardContent className="p-3">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="font-medium text-sm flex-1">{epic.title}</div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {featureCount} feature{featureCount !== 1 ? 's' : ''}
+                        </div>
+                        <Progress value={epic.progress} className="h-1 mt-2" />
+                        <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
+                          <span>{epic.progress}%</span>
+                          {epic.targetDate && (
+                            <span>{new Date(epic.targetDate).toLocaleDateString()}</span>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           ))}

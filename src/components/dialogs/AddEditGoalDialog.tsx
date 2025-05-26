@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Goal } from "@/types";
 import { useAppContext } from "@/contexts/AppContext";
 import { Calendar } from "@/components/ui/calendar";
@@ -22,7 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Plus, X } from "lucide-react";
 
 interface AddEditGoalDialogProps {
   open: boolean;
@@ -32,23 +33,48 @@ interface AddEditGoalDialogProps {
 }
 
 export function AddEditGoalDialog({ open, onOpenChange, goal, onSave }: AddEditGoalDialogProps) {
-  const { currentUser } = useAppContext();
-  const [formData, setFormData] = useState<Partial<Goal>>({
+  const { currentUser, initiatives } = useAppContext();
+  const [formData, setFormData] = useState<Partial<Goal & {
+    category: string;
+    priority: "low" | "medium" | "high" | "critical";
+    successMetrics: string[];
+    dependencies: string[];
+    linkedInitiatives: string[];
+    budget: number;
+    owner: string;
+  }>>({
     title: "",
     description: "",
     status: "not_started",
     progress: 0,
     ownerId: currentUser?.id || "",
-    workspaceId: "w1", // Default workspace ID
+    workspaceId: "w1",
     startDate: undefined,
     targetDate: undefined,
+    category: "",
+    priority: "medium",
+    successMetrics: [],
+    dependencies: [],
+    linkedInitiatives: [],
+    budget: 0,
+    owner: "",
   });
+
+  const [newMetric, setNewMetric] = useState("");
+  const [newDependency, setNewDependency] = useState("");
 
   // Load goal data when editing
   useEffect(() => {
     if (goal) {
       setFormData({
-        ...goal
+        ...goal,
+        category: "",
+        priority: "medium",
+        successMetrics: [],
+        dependencies: [],
+        linkedInitiatives: [],
+        budget: 0,
+        owner: "",
       });
     } else {
       // Reset form for new goal
@@ -61,19 +87,67 @@ export function AddEditGoalDialog({ open, onOpenChange, goal, onSave }: AddEditG
         workspaceId: "w1",
         startDate: undefined,
         targetDate: undefined,
+        category: "",
+        priority: "medium",
+        successMetrics: [],
+        dependencies: [],
+        linkedInitiatives: [],
+        budget: 0,
+        owner: "",
       });
     }
   }, [goal, currentUser]);
 
-  const handleChange = (field: string, value: string | number | Date | undefined) => {
+  const handleChange = (field: string, value: string | number | Date | undefined | string[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const addMetric = () => {
+    if (newMetric.trim()) {
+      handleChange("successMetrics", [...(formData.successMetrics || []), newMetric.trim()]);
+      setNewMetric("");
+    }
+  };
+
+  const removeMetric = (index: number) => {
+    const metrics = [...(formData.successMetrics || [])];
+    metrics.splice(index, 1);
+    handleChange("successMetrics", metrics);
+  };
+
+  const addDependency = () => {
+    if (newDependency.trim()) {
+      handleChange("dependencies", [...(formData.dependencies || []), newDependency.trim()]);
+      setNewDependency("");
+    }
+  };
+
+  const removeDependency = (index: number) => {
+    const deps = [...(formData.dependencies || [])];
+    deps.splice(index, 1);
+    handleChange("dependencies", deps);
+  };
+
+  const handleInitiativeToggle = (initiativeId: string) => {
+    const linked = formData.linkedInitiatives || [];
+    if (linked.includes(initiativeId)) {
+      handleChange("linkedInitiatives", linked.filter(id => id !== initiativeId));
+    } else {
+      handleChange("linkedInitiatives", [...linked, initiativeId]);
+    }
   };
 
   const handleSubmit = () => {
     const newGoal = {
-      id: goal?.id || `g${Date.now()}`, // Generate ID if new
-      ...formData,
+      id: goal?.id || `g${Date.now()}`,
+      title: formData.title || "",
+      description: formData.description || "",
+      status: formData.status || "not_started",
       progress: Number(formData.progress) || 0,
+      ownerId: formData.ownerId || "",
+      workspaceId: formData.workspaceId || "w1",
+      startDate: formData.startDate,
+      targetDate: formData.targetDate,
     } as Goal;
     
     onSave(newGoal);
@@ -84,7 +158,7 @@ export function AddEditGoalDialog({ open, onOpenChange, goal, onSave }: AddEditG
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{goal ? "Edit Goal" : "Add New Goal"}</DialogTitle>
           <DialogDescription>
@@ -93,14 +167,34 @@ export function AddEditGoalDialog({ open, onOpenChange, goal, onSave }: AddEditG
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input 
-              id="title"
-              value={formData.title || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
-              placeholder="e.g., Increase conversion rate by 20%"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input 
+                id="title"
+                value={formData.title || ""}
+                onChange={(e) => handleChange("title", e.target.value)}
+                placeholder="e.g., Increase conversion rate by 20%"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Select 
+                value={formData.category} 
+                onValueChange={(value) => handleChange("category", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="revenue">Revenue</SelectItem>
+                  <SelectItem value="customer">Customer</SelectItem>
+                  <SelectItem value="operational">Operational</SelectItem>
+                  <SelectItem value="strategic">Strategic</SelectItem>
+                  <SelectItem value="product">Product</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           <div className="space-y-2">
@@ -109,12 +203,12 @@ export function AddEditGoalDialog({ open, onOpenChange, goal, onSave }: AddEditG
               id="description"
               value={formData.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="Describe this goal and its success metrics"
+              placeholder="Describe this goal and its importance"
               rows={3}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select 
@@ -134,6 +228,24 @@ export function AddEditGoalDialog({ open, onOpenChange, goal, onSave }: AddEditG
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="priority">Priority</Label>
+              <Select 
+                value={formData.priority} 
+                onValueChange={(value) => handleChange("priority", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="progress">Progress (%)</Label>
               <Input 
                 id="progress"
@@ -142,6 +254,28 @@ export function AddEditGoalDialog({ open, onOpenChange, goal, onSave }: AddEditG
                 max="100"
                 value={formData.progress || 0}
                 onChange={(e) => handleChange("progress", parseInt(e.target.value))}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="owner">Owner</Label>
+              <Input 
+                id="owner"
+                value={formData.owner || ""}
+                onChange={(e) => handleChange("owner", e.target.value)}
+                placeholder="Goal owner"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="budget">Budget ($)</Label>
+              <Input 
+                id="budget"
+                type="number"
+                value={formData.budget || 0}
+                onChange={(e) => handleChange("budget", Number(e.target.value))}
+                placeholder="0"
               />
             </div>
           </div>
@@ -197,6 +331,88 @@ export function AddEditGoalDialog({ open, onOpenChange, goal, onSave }: AddEditG
                   />
                 </PopoverContent>
               </Popover>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Success Metrics</Label>
+            <div className="flex gap-2">
+              <Input 
+                value={newMetric}
+                onChange={(e) => setNewMetric(e.target.value)}
+                placeholder="Add a success metric"
+                onKeyPress={(e) => e.key === 'Enter' && addMetric()}
+              />
+              <Button type="button" onClick={addMetric} size="sm">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {formData.successMetrics?.map((metric, index) => (
+                <div key={index} className="flex items-center justify-between bg-muted p-2 rounded">
+                  <span className="text-sm">{metric}</span>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => removeMetric(index)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Dependencies</Label>
+            <div className="flex gap-2">
+              <Input 
+                value={newDependency}
+                onChange={(e) => setNewDependency(e.target.value)}
+                placeholder="Add a dependency"
+                onKeyPress={(e) => e.key === 'Enter' && addDependency()}
+              />
+              <Button type="button" onClick={addDependency} size="sm">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {formData.dependencies?.map((dep, index) => (
+                <div key={index} className="flex items-center justify-between bg-muted p-2 rounded">
+                  <span className="text-sm">{dep}</span>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => removeDependency(index)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Linked Initiatives</Label>
+            <div className="border rounded-md p-3 max-h-32 overflow-y-auto">
+              {initiatives.length > 0 ? (
+                initiatives.map(initiative => (
+                  <div key={initiative.id} className="flex items-center space-x-2 py-1">
+                    <Checkbox 
+                      id={`initiative-${initiative.id}`}
+                      checked={formData.linkedInitiatives?.includes(initiative.id) || false}
+                      onCheckedChange={() => handleInitiativeToggle(initiative.id)}
+                    />
+                    <label htmlFor={`initiative-${initiative.id}`} className="text-sm flex-1">
+                      {initiative.title}
+                    </label>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No initiatives available to link</p>
+              )}
             </div>
           </div>
         </div>
