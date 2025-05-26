@@ -52,8 +52,8 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
       // Convert empty values to proper defaults for select components
       const processedFeature = {
         ...feature,
-        epicId: feature.epicId || "",
-        releaseId: feature.releaseId || "",
+        epicId: feature.epicId || undefined,
+        releaseId: feature.releaseId || undefined,
         acceptanceCriteria: feature.acceptanceCriteria || [],
         assignedTo: Array.isArray(feature.assignedTo) ? feature.assignedTo : 
                     feature.assignedTo ? [feature.assignedTo] : [],
@@ -76,8 +76,8 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
         feedback: [],
         dependencies: [],
         progress: 0,
-        epicId: "",
-        releaseId: "",
+        epicId: undefined,
+        releaseId: undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
         workspaceId: "w1",
@@ -120,8 +120,8 @@ export function AddEditFeatureDialog({ open, onOpenChange, feature, onSave }: Ad
         dependencies: formData.dependencies || [],
         feedback: formData.feedback || [],
         assignedTo: formData.assignedTo || [],
-        epicId: formData.epicId || "",
-        releaseId: formData.releaseId || "",
+        epicId: formData.epicId || undefined,
+        releaseId: formData.releaseId || undefined,
         updatedAt: new Date(),
         createdAt: feature?.createdAt || new Date(),
         workspaceId: formData.workspaceId || "w1",

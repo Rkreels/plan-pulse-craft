@@ -1,12 +1,13 @@
 
-import React, { useState } from "react";
-import { Label } from "@/components/ui/label";
+import React from "react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { X, Plus } from "lucide-react";
 import { Feature, Epic, Release } from "@/types";
 
 interface FeatureFormFieldsProps {
@@ -16,126 +17,50 @@ interface FeatureFormFieldsProps {
   releases: Release[];
 }
 
-const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChange, epics, releases }) => {
-  const [currentTag, setCurrentTag] = useState("");
-  const [currentCriterion, setCurrentCriterion] = useState("");
-
-  // Add console logging to debug empty values
-  console.log("FeatureFormFields - epics:", epics);
-  console.log("FeatureFormFields - releases:", releases);
-  console.log("FeatureFormFields - formData:", formData);
-
-  const addTag = () => {
-    if (currentTag.trim() && !formData.tags?.includes(currentTag.trim())) {
-      onChange("tags", [...(formData.tags || []), currentTag.trim()]);
-      setCurrentTag("");
+const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({
+  formData,
+  onChange,
+  epics = [],
+  releases = [],
+}) => {
+  const handleTagAdd = (newTag: string) => {
+    if (newTag && !formData.tags?.includes(newTag)) {
+      onChange("tags", [...(formData.tags || []), newTag]);
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
+  const handleTagRemove = (tagToRemove: string) => {
     onChange("tags", (formData.tags || []).filter(tag => tag !== tagToRemove));
   };
 
-  const addCriterion = () => {
-    if (currentCriterion.trim()) {
-      onChange("acceptanceCriteria", [
-        ...(formData.acceptanceCriteria || []), 
-        currentCriterion.trim()
-      ]);
-      setCurrentCriterion("");
+  const handleCriteriaAdd = (newCriteria: string) => {
+    if (newCriteria) {
+      onChange("acceptanceCriteria", [...(formData.acceptanceCriteria || []), newCriteria]);
     }
   };
 
-  const removeCriterion = (index: number) => {
-    onChange(
-      "acceptanceCriteria",
-      (formData.acceptanceCriteria || []).filter((_, i) => i !== index)
-    );
+  const handleCriteriaRemove = (index: number) => {
+    const updated = [...(formData.acceptanceCriteria || [])];
+    updated.splice(index, 1);
+    onChange("acceptanceCriteria", updated);
   };
 
-  // Filter out any epics or releases with empty IDs
-  const validEpics = epics.filter(epic => epic.id && epic.id.trim() !== "");
-  const validReleases = releases.filter(release => release.id && release.id.trim() !== "");
-
   return (
-    <div className="space-y-4">
-      {/* Title and Description fields */}
-      <div className="space-y-2">
-        <Label htmlFor="title">Feature Title</Label>
-        <Input 
-          id="title"
-          value={formData.title || ""}
-          onChange={(e) => onChange("title", e.target.value)}
-          placeholder="e.g., Interactive Product Tour"
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea 
-          id="description"
-          value={formData.description || ""}
-          onChange={(e) => onChange("description", e.target.value)}
-          placeholder="Describe this feature and its benefits"
-          rows={3}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="userStory">User Story</Label>
-        <Textarea 
-          id="userStory"
-          value={formData.userStory || ""}
-          onChange={(e) => onChange("userStory", e.target.value)}
-          placeholder="As a [type of user], I want [goal] so that [benefit]"
-          rows={2}
-        />
-      </div>
-
-      {/* Acceptance Criteria */}
-      <div className="space-y-2">
-        <Label>Acceptance Criteria</Label>
-        <div className="flex gap-2">
+    <div className="grid gap-4 py-4">
+      {/* Basic Information */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="title">Title *</Label>
           <Input
-            value={currentCriterion}
-            onChange={(e) => setCurrentCriterion(e.target.value)}
-            placeholder="Add acceptance criterion"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                addCriterion();
-              }
-            }}
+            id="title"
+            value={formData.title || ""}
+            onChange={(e) => onChange("title", e.target.value)}
+            placeholder="Feature title"
           />
-          <Button type="button" onClick={addCriterion}>Add</Button>
         </div>
-        {formData.acceptanceCriteria && formData.acceptanceCriteria.length > 0 && (
-          <div className="mt-2 space-y-2">
-            {formData.acceptanceCriteria.map((criterion, index) => (
-              <div key={index} className="flex items-center justify-between bg-muted p-2 rounded-md">
-                <span className="text-sm">{criterion}</span>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => removeCriterion(index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Status and Priority */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-2">
+        <div className="grid gap-2">
           <Label htmlFor="status">Status</Label>
-          <Select 
-            value={formData.status || "idea"} 
-            onValueChange={(value) => onChange("status", value)}
-          >
+          <Select value={formData.status || "idea"} onValueChange={(value) => onChange("status", value)}>
             <SelectTrigger>
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
@@ -144,19 +69,40 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
               <SelectItem value="backlog">Backlog</SelectItem>
               <SelectItem value="planned">Planned</SelectItem>
               <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="review">Review</SelectItem>
+              <SelectItem value="review">In Review</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="not_started">Not Started</SelectItem>
             </SelectContent>
           </Select>
         </div>
+      </div>
 
-        <div className="space-y-2">
+      <div className="grid gap-2">
+        <Label htmlFor="description">Description *</Label>
+        <Textarea
+          id="description"
+          value={formData.description || ""}
+          onChange={(e) => onChange("description", e.target.value)}
+          placeholder="Describe the feature"
+          rows={3}
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="userStory">User Story</Label>
+        <Textarea
+          id="userStory"
+          value={formData.userStory || ""}
+          onChange={(e) => onChange("userStory", e.target.value)}
+          placeholder="As a [user type], I want [functionality] so that [benefit]"
+          rows={2}
+        />
+      </div>
+
+      {/* Priority and Effort */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-2">
           <Label htmlFor="priority">Priority</Label>
-          <Select 
-            value={formData.priority || "medium"} 
-            onValueChange={(value) => onChange("priority", value)}
-          >
+          <Select value={formData.priority || "medium"} onValueChange={(value) => onChange("priority", value)}>
             <SelectTrigger>
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
@@ -168,67 +114,77 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
             </SelectContent>
           </Select>
         </div>
-      </div>
-
-      {/* Effort and Value */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="effort">Effort (1-10)</Label>
-          <Input 
-            id="effort"
+        <div className="grid gap-2">
+          <Label htmlFor="progress">Progress (%)</Label>
+          <Input
+            id="progress"
             type="number"
-            min="1"
-            max="10"
-            value={formData.effort || 5}
-            onChange={(e) => onChange("effort", parseInt(e.target.value))}
+            min={0}
+            max={100}
+            value={formData.progress || 0}
+            onChange={(e) => onChange("progress", Number(e.target.value))}
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="value">Value (1-10)</Label>
-          <Input 
-            id="value"
-            type="number"
-            min="1"
-            max="10"
-            value={formData.value || 5}
-            onChange={(e) => onChange("value", parseInt(e.target.value))}
+      </div>
+
+      {/* Effort and Value Sliders */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-2">
+          <Label>Effort: {formData.effort || 5}</Label>
+          <Slider
+            value={[formData.effort || 5]}
+            onValueChange={(value) => onChange("effort", value[0])}
+            max={10}
+            min={1}
+            step={1}
+            className="w-full"
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label>Value: {formData.value || 5}</Label>
+          <Slider
+            value={[formData.value || 5]}
+            onValueChange={(value) => onChange("value", value[0])}
+            max={10}
+            min={1}
+            step={1}
+            className="w-full"
           />
         </div>
       </div>
 
       {/* Epic and Release */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="epicId">Epic</Label>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="epic">Epic</Label>
           <Select 
             value={formData.epicId || "none"} 
-            onValueChange={(value) => onChange("epicId", value === "none" ? "" : value)}
+            onValueChange={(value) => onChange("epicId", value === "none" ? undefined : value)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select epic (optional)" />
+              <SelectValue placeholder="Select epic" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">No Epic</SelectItem>
-              {validEpics.map((epic) => (
+              {epics.map(epic => (
                 <SelectItem key={epic.id} value={epic.id}>{epic.title}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="releaseId">Release</Label>
+        <div className="grid gap-2">
+          <Label htmlFor="release">Release</Label>
           <Select 
             value={formData.releaseId || "none"} 
-            onValueChange={(value) => onChange("releaseId", value === "none" ? "" : value)}
+            onValueChange={(value) => onChange("releaseId", value === "none" ? undefined : value)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select release (optional)" />
+              <SelectValue placeholder="Select release" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">No Release</SelectItem>
-              {validReleases.map((release) => (
-                <SelectItem key={release.id} value={release.id}>{release.name}</SelectItem>
+              {releases.map(release => (
+                <SelectItem key={release.id} value={release.id}>{release.title}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -236,40 +192,92 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({ formData, onChang
       </div>
 
       {/* Tags */}
-      <div className="space-y-2">
+      <div className="grid gap-2">
         <Label>Tags</Label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {(formData.tags || []).map(tag => (
+            <Badge key={tag} variant="secondary" className="gap-1">
+              {tag}
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-4 w-4 p-0"
+                onClick={() => handleTagRemove(tag)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          ))}
+        </div>
         <div className="flex gap-2">
           <Input
-            value={currentTag}
-            onChange={(e) => setCurrentTag(e.target.value)}
-            placeholder="Add a tag"
-            onKeyDown={(e) => {
+            placeholder="Add tag"
+            onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                addTag();
+                handleTagAdd(e.currentTarget.value);
+                e.currentTarget.value = '';
               }
             }}
           />
-          <Button type="button" onClick={addTag}>Add</Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              const input = document.querySelector('input[placeholder="Add tag"]') as HTMLInputElement;
+              if (input?.value) {
+                handleTagAdd(input.value);
+                input.value = '';
+              }
+            }}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
-        {formData.tags && formData.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {formData.tags.map(tag => (
-              <Badge key={tag} variant="secondary" className="flex items-center gap-1 pl-2 pr-1">
-                {tag}
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-5 w-5 ml-1 hover:bg-muted"
-                  onClick={() => removeTag(tag)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
-          </div>
-        )}
+      </div>
+
+      {/* Acceptance Criteria */}
+      <div className="grid gap-2">
+        <Label>Acceptance Criteria</Label>
+        <div className="space-y-2">
+          {(formData.acceptanceCriteria || []).map((criteria, index) => (
+            <div key={index} className="flex gap-2">
+              <Input value={criteria} readOnly className="flex-1" />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleCriteriaRemove(index)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Input
+            placeholder="Add acceptance criteria"
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleCriteriaAdd(e.currentTarget.value);
+                e.currentTarget.value = '';
+              }
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              const input = document.querySelector('input[placeholder="Add acceptance criteria"]') as HTMLInputElement;
+              if (input?.value) {
+                handleCriteriaAdd(input.value);
+                input.value = '';
+              }
+            }}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
