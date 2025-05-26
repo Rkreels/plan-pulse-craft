@@ -151,8 +151,13 @@ export function FeatureDependencyManager() {
     ? dependencies.filter(d => d.featureId === selectedFeature || d.dependsOnId === selectedFeature)
     : dependencies;
 
-  // Get available features for selection (excluding those with empty IDs)
-  const availableFeatures = features.filter(f => f.id && f.id.trim() !== "");
+  // Get available features for selection - ensure no empty IDs and valid titles
+  const availableFeatures = features.filter(f => 
+    f.id && 
+    f.id.trim() !== "" && 
+    f.title && 
+    f.title.trim() !== ""
+  );
   
   return (
     <div className="space-y-6">
@@ -194,8 +199,8 @@ export function FeatureDependencyManager() {
               <div>
                 <label className="text-sm font-medium mb-1 block">Feature</label>
                 <Select 
-                  value={newDependency.featureId} 
-                  onValueChange={(value) => setNewDependency({ ...newDependency, featureId: value })}
+                  value={newDependency.featureId || undefined} 
+                  onValueChange={(value) => setNewDependency({ ...newDependency, featureId: value || "" })}
                   disabled={isLoading}
                 >
                   <SelectTrigger>
@@ -232,8 +237,8 @@ export function FeatureDependencyManager() {
               <div>
                 <label className="text-sm font-medium mb-1 block">Depends on</label>
                 <Select 
-                  value={newDependency.dependsOnId} 
-                  onValueChange={(value) => setNewDependency({ ...newDependency, dependsOnId: value })}
+                  value={newDependency.dependsOnId || undefined} 
+                  onValueChange={(value) => setNewDependency({ ...newDependency, dependsOnId: value || "" })}
                   disabled={isLoading}
                 >
                   <SelectTrigger>
@@ -266,12 +271,12 @@ export function FeatureDependencyManager() {
       
       <div className="mt-6">
         <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
-          <Select value={selectedFeature || ""} onValueChange={(value) => setSelectedFeature(value || null)}>
+          <Select value={selectedFeature || undefined} onValueChange={(value) => setSelectedFeature(value || null)}>
             <SelectTrigger className="w-full md:w-[220px]">
               <SelectValue placeholder="Filter by feature" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Features</SelectItem>
+              <SelectItem value="all">All Features</SelectItem>
               {availableFeatures.map((feature) => (
                 <SelectItem key={feature.id} value={feature.id}>{feature.title}</SelectItem>
               ))}
