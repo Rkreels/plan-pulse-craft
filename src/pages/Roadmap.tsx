@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { PageTitle } from "@/components/common/PageTitle";
 import { useAppContext } from "@/contexts/AppContext";
@@ -19,10 +18,12 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BarChart3, Plus, Settings, Edit } from "lucide-react";
+import { Plus, Settings, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AddEditRoadmapViewDialog } from "@/components/dialogs/AddEditRoadmapViewDialog";
-import { RoadmapView } from "@/types";
+import { AddEditGoalDialog } from "@/components/dialogs/AddEditGoalDialog";
+import { AddEditReleaseDialog } from "@/components/dialogs/AddEditReleaseDialog";
+import { RoadmapView, Goal, Release, Epic } from "@/types";
 import { toast } from "sonner";
 
 const Roadmap = () => {
@@ -34,11 +35,18 @@ const Roadmap = () => {
     initiatives, 
     releases, 
     epics,
-    features
+    features,
+    updateGoal,
+    updateRelease,
+    updateEpic
   } = useAppContext();
 
   const [isAddEditViewDialogOpen, setIsAddEditViewDialogOpen] = useState(false);
   const [selectedView, setSelectedView] = useState<RoadmapView | undefined>(undefined);
+  const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<Goal | undefined>(undefined);
+  const [isReleaseDialogOpen, setIsReleaseDialogOpen] = useState(false);
+  const [selectedRelease, setSelectedRelease] = useState<Release | undefined>(undefined);
 
   const handleAddViewClick = () => {
     setSelectedView(undefined);
@@ -53,6 +61,28 @@ const Roadmap = () => {
   const handleSaveView = (view: RoadmapView) => {
     setCurrentView(view);
     toast.success(selectedView ? "View updated" : "New view created");
+  };
+
+  const handleEditGoal = (goal: Goal) => {
+    setSelectedGoal(goal);
+    setIsGoalDialogOpen(true);
+  };
+
+  const handleEditRelease = (release: Release) => {
+    setSelectedRelease(release);
+    setIsReleaseDialogOpen(true);
+  };
+
+  const handleSaveGoal = (goal: Goal) => {
+    updateGoal(goal);
+    setIsGoalDialogOpen(false);
+    setSelectedGoal(undefined);
+  };
+
+  const handleSaveRelease = (release: Release) => {
+    updateRelease(release);
+    setIsReleaseDialogOpen(false);
+    setSelectedRelease(undefined);
   };
 
   // Get actual feature count for an epic
@@ -125,24 +155,27 @@ const Roadmap = () => {
     }
     
     return (
-      <div className="mt-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-2">
+      <div className="mt-6 space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           {quarters.map((quarter, i) => (
-            <div key={i} className="px-4 py-2 bg-muted rounded-md text-center">
-              <h3 className="font-medium">{quarter.name}</h3>
+            <div key={i} className="px-4 py-3 bg-muted rounded-lg text-center">
+              <h3 className="font-medium text-lg">{quarter.name}</h3>
+              <p className="text-sm text-muted-foreground">
+                {quarter.start.toLocaleDateString()} - {quarter.end.toLocaleDateString()}
+              </p>
             </div>
           ))}
         </div>
         
-        <div className="space-y-8 mt-6">
+        <div className="space-y-8">
           <div>
-            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Badge className="bg-primary">Goals</Badge>
               Strategic Goals
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {quarters.map((quarter, i) => (
-                <div key={i} className="border rounded-md p-3 h-full">
+                <div key={i} className="border rounded-lg p-4 min-h-[200px]">
                   {sortedGoals
                     .filter(g => {
                       if (!g.targetDate) return i === 0;
@@ -150,23 +183,34 @@ const Roadmap = () => {
                       return targetDate >= quarter.start && targetDate <= quarter.end;
                     })
                     .map(goal => (
-                      <div key={goal.id} className="mb-2 p-2 bg-background rounded-md border group cursor-pointer hover:border-primary">
-                        <div className="flex justify-between items-start">
-                          <div className="font-medium text-sm flex-1">{goal.title}</div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
-                          <span>{goal.status.replace('_', ' ')}</span>
-                          <span>{goal.progress}%</span>
-                        </div>
-                        <Progress value={goal.progress} className="h-1 mt-1" />
-                      </div>
+                      <Card key={goal.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow group">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="font-medium text-sm flex-1">{goal.title}</div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleEditGoal(goal)}
+                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{goal.description}</p>
+                          <div className="flex items-center justify-between mt-2 text-xs">
+                            <Badge className={
+                              goal.status === "completed" ? "bg-green-500" :
+                              goal.status === "in_progress" ? "bg-blue-500" :
+                              goal.status === "at_risk" ? "bg-red-500" :
+                              "bg-slate-500"
+                            }>
+                              {goal.status.replace('_', ' ')}
+                            </Badge>
+                            <span className="text-muted-foreground">{goal.progress}%</span>
+                          </div>
+                          <Progress value={goal.progress} className="h-1 mt-2" />
+                        </CardContent>
+                      </Card>
                     ))}
                 </div>
               ))}
@@ -174,47 +218,51 @@ const Roadmap = () => {
           </div>
           
           <div>
-            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Badge className="bg-green-600">Releases</Badge>
               Product Releases
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {quarters.map((quarter, i) => (
-                <div key={i} className="border rounded-md p-3 h-full">
+                <div key={i} className="border rounded-lg p-4 min-h-[200px]">
                   {sortedReleases
                     .filter(r => {
                       const releaseDate = new Date(r.releaseDate);
                       return releaseDate >= quarter.start && releaseDate <= quarter.end;
                     })
                     .map(release => (
-                      <div key={release.id} className="mb-2 p-2 bg-background rounded-md border group cursor-pointer hover:border-primary">
-                        <div className="flex justify-between items-start">
-                          <div className="font-medium text-sm flex-1">
-                            {release.name} <span className="text-xs">v{release.version}</span>
+                      <Card key={release.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow group">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="font-medium text-sm flex-1">
+                              {release.name} <span className="text-xs text-muted-foreground">v{release.version}</span>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleEditRelease(release)}
+                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <div className="flex items-center justify-between mt-1 text-xs">
-                          <Badge className={
-                            release.status === "completed" ? "bg-green-500" :
-                            release.status === "in_progress" ? "bg-blue-500" :
-                            release.status === "delayed" ? "bg-red-500" :
-                            "bg-slate-500"
-                          }>
-                            {release.status}
-                          </Badge>
-                          <span className="text-muted-foreground">{getReleaseFeatureCount(release.id)} features</span>
-                        </div>
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          {new Date(release.releaseDate).toLocaleDateString()}
-                        </div>
-                      </div>
+                          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{release.description}</p>
+                          <div className="flex items-center justify-between mt-2 text-xs">
+                            <Badge className={
+                              release.status === "completed" ? "bg-green-500" :
+                              release.status === "in_progress" ? "bg-blue-500" :
+                              release.status === "delayed" ? "bg-red-500" :
+                              "bg-slate-500"
+                            }>
+                              {release.status}
+                            </Badge>
+                            <span className="text-muted-foreground">{getReleaseFeatureCount(release.id)} features</span>
+                          </div>
+                          <div className="mt-2 text-xs text-muted-foreground">
+                            {new Date(release.releaseDate).toLocaleDateString()}
+                          </div>
+                        </CardContent>
+                      </Card>
                     ))}
                 </div>
               ))}
@@ -222,13 +270,13 @@ const Roadmap = () => {
           </div>
           
           <div>
-            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Badge className="bg-blue-600">Epics</Badge>
               Development Epics
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {quarters.map((quarter, i) => (
-                <div key={i} className="border rounded-md p-3 h-full">
+                <div key={i} className="border rounded-lg p-4 min-h-[200px]">
                   {filteredEpics
                     .filter(e => {
                       if (!e.targetDate) return i === 0;
@@ -238,27 +286,37 @@ const Roadmap = () => {
                     .map(epic => {
                       const featureCount = getEpicFeatureCount(epic.id);
                       return (
-                        <div key={epic.id} className="mb-2 p-2 bg-background rounded-md border group cursor-pointer hover:border-primary">
-                          <div className="flex justify-between items-start">
-                            <div className="font-medium text-sm flex-1">{epic.title}</div>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
-                            <span>{epic.status.replace('_', ' ')}</span>
-                            <span>{featureCount} feature{featureCount !== 1 ? 's' : ''}</span>
-                          </div>
-                          <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
-                            <span>Progress</span>
-                            <span>{epic.progress}%</span>
-                          </div>
-                          <Progress value={epic.progress} className="h-1 mt-1" />
-                        </div>
+                        <Card key={epic.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow group">
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="font-medium text-sm flex-1">{epic.title}</div>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{epic.description}</p>
+                            <div className="flex items-center justify-between mt-2 text-xs">
+                              <Badge className={
+                                epic.status === "completed" ? "bg-green-500" :
+                                epic.status === "in_progress" ? "bg-blue-500" :
+                                epic.status === "review" ? "bg-yellow-500" :
+                                "bg-slate-500"
+                              }>
+                                {epic.status.replace('_', ' ')}
+                              </Badge>
+                              <span className="text-muted-foreground">{featureCount} feature{featureCount !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
+                              <span>Progress</span>
+                              <span>{epic.progress}%</span>
+                            </div>
+                            <Progress value={epic.progress} className="h-1 mt-1" />
+                          </CardContent>
+                        </Card>
                       );
                     })}
                 </div>
@@ -270,7 +328,7 @@ const Roadmap = () => {
     );
   };
 
-  // Board view
+  // Board view - Keep existing implementation
   const renderBoardView = () => {
     const { filteredEpics } = getFilteredData();
 
@@ -326,13 +384,13 @@ const Roadmap = () => {
   };
 
   return (
-    <>
+    <div className="space-y-6">
       <PageTitle
         title="Product Roadmap"
         description="Strategic view of your product plan"
       />
       
-      <div className="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
           <Select
             value={currentView?.id || ""}
@@ -378,7 +436,21 @@ const Roadmap = () => {
         view={selectedView}
         onSave={handleSaveView}
       />
-    </>
+
+      <AddEditGoalDialog
+        open={isGoalDialogOpen}
+        onOpenChange={setIsGoalDialogOpen}
+        goal={selectedGoal}
+        onSave={handleSaveGoal}
+      />
+
+      <AddEditReleaseDialog
+        open={isReleaseDialogOpen}
+        onOpenChange={setIsReleaseDialogOpen}
+        release={selectedRelease}
+        onSave={handleSaveRelease}
+      />
+    </div>
   );
 };
 

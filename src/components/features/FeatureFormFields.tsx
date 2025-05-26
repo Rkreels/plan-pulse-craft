@@ -48,7 +48,7 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({
   return (
     <div className="grid gap-4 py-4">
       {/* Basic Information */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="title">Title *</Label>
           <Input
@@ -99,7 +99,7 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({
       </div>
 
       {/* Priority and Effort */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="priority">Priority</Label>
           <Select value={formData.priority || "medium"} onValueChange={(value) => onChange("priority", value)}>
@@ -128,7 +128,7 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({
       </div>
 
       {/* Effort and Value Sliders */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label>Effort: {formData.effort || 5}</Label>
           <Slider
@@ -154,7 +154,7 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({
       </div>
 
       {/* Epic and Release */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="epic">Epic</Label>
           <Select 
@@ -184,7 +184,7 @@ const FeatureFormFields: React.FC<FeatureFormFieldsProps> = ({
             <SelectContent>
               <SelectItem value="none">No Release</SelectItem>
               {releases.map(release => (
-                <SelectItem key={release.id} value={release.id}>{release.title}</SelectItem>
+                <SelectItem key={release.id} value={release.id}>{release.name} v{release.version}</SelectItem>
               ))}
             </SelectContent>
           </Select>

@@ -9,15 +9,15 @@ import FeatureHeader from "@/components/features/FeatureHeader";
 import FeatureTabContent from "@/components/features/FeatureTabContent";
 import FeatureListControls from "@/components/features/FeatureListControls";
 import EnhancedFeatureList from "@/components/features/EnhancedFeatureList";
+import { AddEditFeatureDialog } from "@/components/dialogs/AddEditFeatureDialog";
 import { toast } from "sonner";
-
-type FeatureStatus = "not_started" | "in_progress" | "review" | "completed" | "idea" | "backlog" | "planned";
-type FeaturePriority = "low" | "medium" | "high" | "critical";
 
 const Features = () => {
   const [activeTab, setActiveTab] = useState("list");
   const { features, epics, addFeature, updateFeature, deleteFeature } = useAppContext();
   const [newFeatureDialogOpen, setNewFeatureDialogOpen] = useState(false);
+  const [editFeatureDialogOpen, setEditFeatureDialogOpen] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState<Feature | undefined>(undefined);
   
   // Enhanced filtering and sorting state
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,6 +37,17 @@ const Features = () => {
     
     addFeature(newFeature);
     setNewFeatureDialogOpen(false);
+  };
+
+  const handleEditFeature = (feature: Feature) => {
+    setSelectedFeature(feature);
+    setEditFeatureDialogOpen(true);
+  };
+
+  const handleUpdateFeature = (updatedFeature: Feature) => {
+    updateFeature(updatedFeature);
+    setEditFeatureDialogOpen(false);
+    setSelectedFeature(undefined);
   };
 
   // Enhanced filtering and sorting logic
@@ -202,7 +213,7 @@ const Features = () => {
   };
   
   return (
-    <>
+    <div className="space-y-6">
       <PageTitle
         title="Feature Management"
         description="Manage product features and their dependencies"
@@ -220,7 +231,7 @@ const Features = () => {
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="list">Feature List</TabsTrigger>
           <TabsTrigger value="board">Kanban Board</TabsTrigger>
           <TabsTrigger value="dependencies">Dependencies</TabsTrigger>
@@ -252,10 +263,7 @@ const Features = () => {
               epics={epics}
               selectedFeatures={selectedFeatures}
               onSelectFeature={handleSelectFeature}
-              onEditFeature={(feature) => {
-                // This would open the edit dialog
-                console.log("Edit feature:", feature);
-              }}
+              onEditFeature={handleEditFeature}
               onDeleteFeature={(featureId) => {
                 deleteFeature(featureId);
                 setSelectedFeatures(prev => prev.filter(id => id !== featureId));
@@ -270,7 +278,14 @@ const Features = () => {
           epics={epics}
         />
       </Tabs>
-    </>
+
+      <AddEditFeatureDialog
+        open={editFeatureDialogOpen}
+        onOpenChange={setEditFeatureDialogOpen}
+        feature={selectedFeature}
+        onSave={handleUpdateFeature}
+      />
+    </div>
   );
 };
 
