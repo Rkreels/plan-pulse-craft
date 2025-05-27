@@ -172,19 +172,18 @@ export const SidebarItems = ({ items, isActive }: SidebarItemsProps) => {
       {items.map((item) => {
         const Icon = item.icon;
         return (
-          <div key={item.path}>
-            <button
-              onClick={() => navigate(item.path)}
-              className={`flex items-center w-full p-2 rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
-                isActive(item.path) 
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' 
-                  : 'text-sidebar-foreground'
-              }`}
-            >
-              <Icon className="mr-3 h-4 w-4" />
-              <span className="text-sm">{item.title}</span>
-            </button>
-          </div>
+          <button
+            key={item.path}
+            onClick={() => navigate(item.path)}
+            className={`flex items-center w-full p-2 rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
+              isActive(item.path) 
+                ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' 
+                : 'text-sidebar-foreground'
+            }`}
+          >
+            <Icon className="mr-3 h-4 w-4" />
+            <span className="text-sm">{item.title}</span>
+          </button>
         );
       })}
     </div>

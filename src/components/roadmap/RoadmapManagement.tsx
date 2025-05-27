@@ -54,8 +54,8 @@ export const RoadmapManagement = () => {
       id: goal.id,
       title: goal.title,
       description: goal.description,
-      status: goal.status === "not_started" ? "planned" : 
-              goal.status === "at_risk" ? "in_progress" : 
+      status: goal.status === "not_started" ? "planned" as const : 
+              goal.status === "at_risk" ? "in_progress" as const : 
               goal.status as "planned" | "in_progress" | "completed",
       type: "goal" as const,
       targetDate: dateToString(goal.targetDate),
@@ -65,8 +65,8 @@ export const RoadmapManagement = () => {
       id: epic.id,
       title: epic.title,
       description: epic.description,
-      status: epic.status === "backlog" ? "planned" : 
-              epic.status === "review" ? "in_progress" :
+      status: epic.status === "backlog" ? "planned" as const : 
+              epic.status === "review" ? "in_progress" as const :
               epic.status as "planned" | "in_progress" | "completed",
       type: "epic" as const,
       targetDate: dateToString(epic.targetDate),
@@ -76,7 +76,7 @@ export const RoadmapManagement = () => {
       id: release.id,
       title: release.name,
       description: release.description,
-      status: release.status === "delayed" ? "in_progress" : 
+      status: release.status === "delayed" ? "in_progress" as const : 
               release.status as "planned" | "in_progress" | "completed",
       type: "release" as const,
       targetDate: dateToString(release.releaseDate),
@@ -87,35 +87,40 @@ export const RoadmapManagement = () => {
   const handleAddRoadmapItem = () => {
     if (!newItemTitle.trim()) return;
     
-    const newItem = {
+    const baseItem = {
       id: `${selectedType}-${Date.now()}`,
       title: newItemTitle,
       description: `New ${selectedType}`,
-      status: "not_started" as const,
-      progress: 0,
       ownerId: currentUser?.id || "",
       workspaceId: workspace?.id || "",
+      progress: 0,
       targetDate: new Date()
     };
 
     if (selectedType === "goal") {
-      addGoal(newItem as Goal);
+      const newGoal: Goal = {
+        ...baseItem,
+        status: "not_started" as const
+      };
+      addGoal(newGoal);
     } else if (selectedType === "epic") {
-      addEpic({
-        ...newItem,
+      const newEpic: Epic = {
+        ...baseItem,
         status: "backlog" as const,
         features: []
-      } as Epic);
+      };
+      addEpic(newEpic);
     } else if (selectedType === "release") {
-      addRelease({
-        ...newItem,
+      const newRelease: Release = {
+        ...baseItem,
         name: newItemTitle,
         status: "planned" as const,
         version: "1.0.0",
         releaseDate: new Date(),
         features: [],
         epics: []
-      } as Release);
+      };
+      addRelease(newRelease);
     }
     
     toast.success(`New ${selectedType} added to roadmap`);

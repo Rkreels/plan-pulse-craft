@@ -265,7 +265,7 @@ const Roadmap = () => {
     );
   };
 
-  // Board view without edit icons
+  // Board view with drag and drop functionality
   const renderBoardView = () => {
     const epicsByStatus = {
       "Planned": epics.filter(epic => epic.status === "planned" || epic.status === "backlog"),
