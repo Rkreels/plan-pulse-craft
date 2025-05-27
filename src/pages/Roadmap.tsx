@@ -19,14 +19,14 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Settings, Edit } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddEditRoadmapViewDialog } from "@/components/dialogs/AddEditRoadmapViewDialog";
 import { AddEditGoalDialog } from "@/components/dialogs/AddEditGoalDialog";
 import { AddEditReleaseDialog } from "@/components/dialogs/AddEditReleaseDialog";
 import { RoadmapManagement } from "@/components/roadmap/RoadmapManagement";
-import { RoadmapView, Goal, Release, Epic } from "@/types";
+import { RoadmapView, Goal, Release } from "@/types";
 import { toast } from "sonner";
 
 const Roadmap = () => {
@@ -35,13 +35,11 @@ const Roadmap = () => {
     currentView, 
     setCurrentView, 
     goals, 
-    initiatives, 
     releases, 
     epics,
     features,
     updateGoal,
-    updateRelease,
-    updateEpic
+    updateRelease
   } = useAppContext();
 
   const [isAddEditViewDialogOpen, setIsAddEditViewDialogOpen] = useState(false);
@@ -51,6 +49,7 @@ const Roadmap = () => {
   const [isReleaseDialogOpen, setIsReleaseDialogOpen] = useState(false);
   const [selectedRelease, setSelectedRelease] = useState<Release | undefined>(undefined);
 
+  // Helper functions
   const handleAddViewClick = () => {
     setSelectedView(undefined);
     setIsAddEditViewDialogOpen(true);
@@ -88,55 +87,16 @@ const Roadmap = () => {
     setSelectedRelease(undefined);
   };
 
-  // Get actual feature count for an epic
   const getEpicFeatureCount = (epicId: string) => {
     return features.filter(feature => feature.epicId === epicId).length;
   };
 
-  // Get actual epic feature count
   const getReleaseFeatureCount = (releaseId: string) => {
     return features.filter(feature => feature.releaseId === releaseId).length;
   };
 
-  // Apply view filters if any
-  const getFilteredData = () => {
-    let filteredEpics = [...epics];
-    let filteredGoals = [...goals];
-    let filteredReleases = [...releases];
-
-    if (currentView?.filters) {
-      currentView.filters.forEach(filter => {
-        switch (filter.field) {
-          case 'status':
-            filteredEpics = filteredEpics.filter(epic => epic.status === filter.value);
-            filteredGoals = filteredGoals.filter(goal => goal.status === filter.value);
-            filteredReleases = filteredReleases.filter(release => release.status === filter.value);
-            break;
-          case 'priority':
-            // Could filter by priority if we add priority to epics/goals
-            break;
-        }
-      });
-    }
-
-    return { filteredEpics, filteredGoals, filteredReleases };
-  };
-
-  // Simple timeline view of goals, epics, and releases
+  // Timeline view with actual data
   const renderTimelineView = () => {
-    const { filteredEpics, filteredGoals, filteredReleases } = getFilteredData();
-
-    // Sort items by date
-    const sortedGoals = [...filteredGoals].sort((a, b) => {
-      const dateA = a.targetDate ? new Date(a.targetDate).getTime() : 0;
-      const dateB = b.targetDate ? new Date(b.targetDate).getTime() : 0;
-      return dateA - dateB;
-    });
-    
-    const sortedReleases = [...filteredReleases].sort((a, b) => {
-      return new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime();
-    });
-    
     // Create quarters for the next 12 months
     const now = new Date();
     const quarters = [];
@@ -171,34 +131,25 @@ const Roadmap = () => {
         </div>
         
         <div className="space-y-8">
+          {/* Goals Section */}
           <div>
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Badge className="bg-primary">Goals</Badge>
-              Strategic Goals
+              Strategic Goals ({goals.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {quarters.map((quarter, i) => (
                 <div key={i} className="border rounded-lg p-4 min-h-[200px]">
-                  {sortedGoals
+                  {goals
                     .filter(g => {
                       if (!g.targetDate) return i === 0;
                       const targetDate = new Date(g.targetDate);
                       return targetDate >= quarter.start && targetDate <= quarter.end;
                     })
                     .map(goal => (
-                      <Card key={goal.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow group">
+                      <Card key={goal.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow">
                         <CardContent className="p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="font-medium text-sm flex-1">{goal.title}</div>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleEditGoal(goal)}
-                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                          </div>
+                          <div className="font-medium text-sm mb-2">{goal.title}</div>
                           <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{goal.description}</p>
                           <div className="flex items-center justify-between mt-2 text-xs">
                             <Badge className={
@@ -220,34 +171,25 @@ const Roadmap = () => {
             </div>
           </div>
           
+          {/* Releases Section */}
           <div>
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Badge className="bg-green-600">Releases</Badge>
-              Product Releases
+              Product Releases ({releases.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {quarters.map((quarter, i) => (
                 <div key={i} className="border rounded-lg p-4 min-h-[200px]">
-                  {sortedReleases
+                  {releases
                     .filter(r => {
                       const releaseDate = new Date(r.releaseDate);
                       return releaseDate >= quarter.start && releaseDate <= quarter.end;
                     })
                     .map(release => (
-                      <Card key={release.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow group">
+                      <Card key={release.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow">
                         <CardContent className="p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="font-medium text-sm flex-1">
-                              {release.name} <span className="text-xs text-muted-foreground">v{release.version}</span>
-                            </div>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleEditRelease(release)}
-                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
+                          <div className="font-medium text-sm mb-2">
+                            {release.name} <span className="text-xs text-muted-foreground">v{release.version}</span>
                           </div>
                           <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{release.description}</p>
                           <div className="flex items-center justify-between mt-2 text-xs">
@@ -272,15 +214,16 @@ const Roadmap = () => {
             </div>
           </div>
           
+          {/* Epics Section */}
           <div>
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Badge className="bg-blue-600">Epics</Badge>
-              Development Epics
+              Development Epics ({epics.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {quarters.map((quarter, i) => (
                 <div key={i} className="border rounded-lg p-4 min-h-[200px]">
-                  {filteredEpics
+                  {epics
                     .filter(e => {
                       if (!e.targetDate) return i === 0;
                       const targetDate = new Date(e.targetDate);
@@ -289,18 +232,9 @@ const Roadmap = () => {
                     .map(epic => {
                       const featureCount = getEpicFeatureCount(epic.id);
                       return (
-                        <Card key={epic.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow group">
+                        <Card key={epic.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow">
                           <CardContent className="p-4">
-                            <div className="flex justify-between items-start mb-2">
-                              <div className="font-medium text-sm flex-1">{epic.title}</div>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                            </div>
+                            <div className="font-medium text-sm mb-2">{epic.title}</div>
                             <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{epic.description}</p>
                             <div className="flex items-center justify-between mt-2 text-xs">
                               <Badge className={
@@ -331,15 +265,13 @@ const Roadmap = () => {
     );
   };
 
-  // Board view - Keep existing implementation
+  // Board view without edit icons
   const renderBoardView = () => {
-    const { filteredEpics } = getFilteredData();
-
     const epicsByStatus = {
-      "Planned": filteredEpics.filter(epic => epic.status === "planned" || epic.status === "backlog"),
-      "In Progress": filteredEpics.filter(epic => epic.status === "in_progress"),
-      "Review": filteredEpics.filter(epic => epic.status === "review"),
-      "Completed": filteredEpics.filter(epic => epic.status === "completed"),
+      "Planned": epics.filter(epic => epic.status === "planned" || epic.status === "backlog"),
+      "In Progress": epics.filter(epic => epic.status === "in_progress"),
+      "Review": epics.filter(epic => epic.status === "review"),
+      "Completed": epics.filter(epic => epic.status === "completed"),
     };
 
     return (
@@ -352,18 +284,9 @@ const Roadmap = () => {
                 {columnEpics.map(epic => {
                   const featureCount = getEpicFeatureCount(epic.id);
                   return (
-                    <Card key={epic.id} className="mb-2 cursor-pointer hover:border-primary group">
+                    <Card key={epic.id} className="mb-2 cursor-pointer hover:border-primary">
                       <CardContent className="p-3">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="font-medium text-sm flex-1">{epic.title}</div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        </div>
+                        <div className="font-medium text-sm mb-2">{epic.title}</div>
                         <div className="text-xs text-muted-foreground mt-1">
                           {featureCount} feature{featureCount !== 1 ? 's' : ''}
                         </div>
@@ -393,12 +316,23 @@ const Roadmap = () => {
         description="Strategic view of your product plan with comprehensive roadmap management"
       />
       
-      <Tabs defaultValue="timeline" className="w-full">
+      <Tabs defaultValue="board" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="timeline">Timeline View</TabsTrigger>
           <TabsTrigger value="board">Board View</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline View</TabsTrigger>
           <TabsTrigger value="manage">Manage Items</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="board" className="space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+            <Badge variant="outline" className="capitalize">Kanban Board View</Badge>
+            <Button onClick={handleAddViewClick}>
+              <Plus className="h-4 w-4 mr-2" /> New View
+            </Button>
+          </div>
+          
+          {renderBoardView()}
+        </TabsContent>
 
         <TabsContent value="timeline" className="space-y-4">
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
@@ -440,17 +374,6 @@ const Roadmap = () => {
           </div>
           
           {renderTimelineView()}
-        </TabsContent>
-
-        <TabsContent value="board" className="space-y-4">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-            <Badge variant="outline" className="capitalize">Board View</Badge>
-            <Button onClick={handleAddViewClick}>
-              <Plus className="h-4 w-4 mr-2" /> New View
-            </Button>
-          </div>
-          
-          {renderBoardView()}
         </TabsContent>
 
         <TabsContent value="manage" className="space-y-4">

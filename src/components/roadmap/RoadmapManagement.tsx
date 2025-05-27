@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Calendar, Target } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 import { toast } from "sonner";
+import { Goal, Epic, Release } from "@/types";
 
 interface RoadmapItem {
   id: string;
@@ -19,15 +20,32 @@ interface RoadmapItem {
 }
 
 export const RoadmapManagement = () => {
-  const { goals, epics, releases } = useAppContext();
+  const { 
+    goals, 
+    epics, 
+    releases, 
+    addGoal, 
+    addEpic, 
+    addRelease,
+    updateGoal,
+    updateEpic,
+    updateRelease,
+    deleteGoal,
+    deleteEpic,
+    deleteRelease,
+    currentUser,
+    workspace
+  } = useAppContext();
+  
   const [newItemTitle, setNewItemTitle] = useState("");
   const [selectedType, setSelectedType] = useState<"goal" | "epic" | "release">("goal");
+  const [editingItem, setEditingItem] = useState<RoadmapItem | null>(null);
 
   // Helper function to safely convert dates to strings
   const dateToString = (date: Date | string | undefined): string => {
     if (!date) return "";
-    if (date instanceof Date) return date.toISOString();
-    return String(date);
+    if (date instanceof Date) return date.toISOString().split('T')[0];
+    return String(date).split('T')[0];
   };
 
   // Combine all roadmap items
@@ -36,7 +54,9 @@ export const RoadmapManagement = () => {
       id: goal.id,
       title: goal.title,
       description: goal.description,
-      status: goal.status as "planned" | "in_progress" | "completed",
+      status: goal.status === "not_started" ? "planned" : 
+              goal.status === "at_risk" ? "in_progress" : 
+              goal.status as "planned" | "in_progress" | "completed",
       type: "goal" as const,
       targetDate: dateToString(goal.targetDate),
       progress: goal.progress
@@ -45,7 +65,9 @@ export const RoadmapManagement = () => {
       id: epic.id,
       title: epic.title,
       description: epic.description,
-      status: epic.status === "backlog" ? "planned" : epic.status as "planned" | "in_progress" | "completed",
+      status: epic.status === "backlog" ? "planned" : 
+              epic.status === "review" ? "in_progress" :
+              epic.status as "planned" | "in_progress" | "completed",
       type: "epic" as const,
       targetDate: dateToString(epic.targetDate),
       progress: epic.progress
@@ -54,7 +76,8 @@ export const RoadmapManagement = () => {
       id: release.id,
       title: release.name,
       description: release.description,
-      status: release.status === "delayed" ? "in_progress" : release.status as "planned" | "in_progress" | "completed",
+      status: release.status === "delayed" ? "in_progress" : 
+              release.status as "planned" | "in_progress" | "completed",
       type: "release" as const,
       targetDate: dateToString(release.releaseDate),
       progress: 0
@@ -64,8 +87,91 @@ export const RoadmapManagement = () => {
   const handleAddRoadmapItem = () => {
     if (!newItemTitle.trim()) return;
     
+    const newItem = {
+      id: `${selectedType}-${Date.now()}`,
+      title: newItemTitle,
+      description: `New ${selectedType}`,
+      status: "not_started" as const,
+      progress: 0,
+      ownerId: currentUser?.id || "",
+      workspaceId: workspace?.id || "",
+      targetDate: new Date()
+    };
+
+    if (selectedType === "goal") {
+      addGoal(newItem as Goal);
+    } else if (selectedType === "epic") {
+      addEpic({
+        ...newItem,
+        status: "backlog" as const,
+        features: []
+      } as Epic);
+    } else if (selectedType === "release") {
+      addRelease({
+        ...newItem,
+        name: newItemTitle,
+        status: "planned" as const,
+        version: "1.0.0",
+        releaseDate: new Date(),
+        features: [],
+        epics: []
+      } as Release);
+    }
+    
     toast.success(`New ${selectedType} added to roadmap`);
     setNewItemTitle("");
+  };
+
+  const handleEditItem = (item: RoadmapItem) => {
+    setEditingItem(item);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingItem) return;
+
+    if (editingItem.type === "goal") {
+      const goal = goals.find(g => g.id === editingItem.id);
+      if (goal) {
+        updateGoal({
+          ...goal,
+          title: editingItem.title,
+          description: editingItem.description
+        });
+      }
+    } else if (editingItem.type === "epic") {
+      const epic = epics.find(e => e.id === editingItem.id);
+      if (epic) {
+        updateEpic({
+          ...epic,
+          title: editingItem.title,
+          description: editingItem.description
+        });
+      }
+    } else if (editingItem.type === "release") {
+      const release = releases.find(r => r.id === editingItem.id);
+      if (release) {
+        updateRelease({
+          ...release,
+          name: editingItem.title,
+          description: editingItem.description
+        });
+      }
+    }
+
+    setEditingItem(null);
+    toast.success(`${editingItem.type} updated`);
+  };
+
+  const handleDeleteItem = (item: RoadmapItem) => {
+    if (item.type === "goal") {
+      deleteGoal(item.id);
+    } else if (item.type === "epic") {
+      deleteEpic(item.id);
+    } else if (item.type === "release") {
+      deleteRelease(item.id);
+    }
+    
+    toast.success(`${item.type} deleted`);
   };
 
   const getTypeColor = (type: string) => {
@@ -128,19 +234,40 @@ export const RoadmapManagement = () => {
                   </Badge>
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => handleEditItem(item)}>
                     <Edit className="h-3 w-3" />
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => handleDeleteItem(item)}>
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
-              <CardTitle className="text-lg">{item.title}</CardTitle>
+              <CardTitle className="text-lg">
+                {editingItem?.id === item.id ? (
+                  <Input
+                    value={editingItem.title}
+                    onChange={(e) => setEditingItem({...editingItem, title: e.target.value})}
+                    onBlur={handleSaveEdit}
+                    onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
+                    autoFocus
+                  />
+                ) : (
+                  item.title
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                {item.description}
+                {editingItem?.id === item.id ? (
+                  <Input
+                    value={editingItem.description}
+                    onChange={(e) => setEditingItem({...editingItem, description: e.target.value})}
+                    onBlur={handleSaveEdit}
+                    onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
+                  />
+                ) : (
+                  item.description
+                )}
               </p>
               
               {item.targetDate && (

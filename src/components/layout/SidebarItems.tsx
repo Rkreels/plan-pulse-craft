@@ -24,7 +24,6 @@ import {
   Activity
 } from "lucide-react";
 
-import { SidebarMenuItem } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
 
 export interface NavigationItem {
@@ -173,9 +172,7 @@ export const SidebarItems = ({ items, isActive }: SidebarItemsProps) => {
       {items.map((item) => {
         const Icon = item.icon;
         return (
-          <SidebarMenuItem 
-            key={item.path}
-          >
+          <div key={item.path}>
             <button
               onClick={() => navigate(item.path)}
               className={`flex items-center w-full p-2 rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
@@ -187,7 +184,7 @@ export const SidebarItems = ({ items, isActive }: SidebarItemsProps) => {
               <Icon className="mr-3 h-4 w-4" />
               <span className="text-sm">{item.title}</span>
             </button>
-          </SidebarMenuItem>
+          </div>
         );
       })}
     </div>
