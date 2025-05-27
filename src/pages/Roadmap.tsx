@@ -147,7 +147,7 @@ const Roadmap = () => {
                       return targetDate >= quarter.start && targetDate <= quarter.end;
                     })
                     .map(goal => (
-                      <Card key={goal.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow">
+                      <Card key={goal.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleEditGoal(goal)}>
                         <CardContent className="p-4">
                           <div className="font-medium text-sm mb-2">{goal.title}</div>
                           <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{goal.description}</p>
@@ -166,6 +166,15 @@ const Roadmap = () => {
                         </CardContent>
                       </Card>
                     ))}
+                  {goals.filter(g => {
+                    if (!g.targetDate) return i === 0;
+                    const targetDate = new Date(g.targetDate);
+                    return targetDate >= quarter.start && targetDate <= quarter.end;
+                  }).length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground text-sm">
+                      No goals this quarter
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -186,7 +195,7 @@ const Roadmap = () => {
                       return releaseDate >= quarter.start && releaseDate <= quarter.end;
                     })
                     .map(release => (
-                      <Card key={release.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow">
+                      <Card key={release.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleEditRelease(release)}>
                         <CardContent className="p-4">
                           <div className="font-medium text-sm mb-2">
                             {release.name} <span className="text-xs text-muted-foreground">v{release.version}</span>
@@ -209,6 +218,14 @@ const Roadmap = () => {
                         </CardContent>
                       </Card>
                     ))}
+                  {releases.filter(r => {
+                    const releaseDate = new Date(r.releaseDate);
+                    return releaseDate >= quarter.start && releaseDate <= quarter.end;
+                  }).length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground text-sm">
+                      No releases this quarter
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -256,6 +273,15 @@ const Roadmap = () => {
                         </Card>
                       );
                     })}
+                  {epics.filter(e => {
+                    if (!e.targetDate) return i === 0;
+                    const targetDate = new Date(e.targetDate);
+                    return targetDate >= quarter.start && targetDate <= quarter.end;
+                  }).length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground text-sm">
+                      No epics this quarter
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -265,42 +291,95 @@ const Roadmap = () => {
     );
   };
 
-  // Board view with drag and drop functionality
+  // Board view with drag and drop functionality - fixed to show all roadmap items
   const renderBoardView = () => {
-    const epicsByStatus = {
-      "Planned": epics.filter(epic => epic.status === "planned" || epic.status === "backlog"),
-      "In Progress": epics.filter(epic => epic.status === "in_progress"),
-      "Review": epics.filter(epic => epic.status === "review"),
-      "Completed": epics.filter(epic => epic.status === "completed"),
+    // Combine all roadmap items for board view
+    const allItems = [
+      ...goals.map(goal => ({
+        id: goal.id,
+        title: goal.title,
+        description: goal.description,
+        status: goal.status === "not_started" ? "planned" as const : 
+                goal.status === "at_risk" ? "in_progress" as const : 
+                goal.status as "planned" | "in_progress" | "completed",
+        type: "goal" as const,
+        progress: goal.progress,
+        targetDate: goal.targetDate
+      })),
+      ...epics.map(epic => ({
+        id: epic.id,
+        title: epic.title,
+        description: epic.description,
+        status: epic.status === "backlog" ? "planned" as const : 
+                epic.status === "review" ? "in_progress" as const :
+                epic.status as "planned" | "in_progress" | "completed",
+        type: "epic" as const,
+        progress: epic.progress,
+        targetDate: epic.targetDate
+      })),
+      ...releases.map(release => ({
+        id: release.id,
+        title: release.name,
+        description: release.description,
+        status: release.status === "delayed" ? "in_progress" as const : 
+                release.status as "planned" | "in_progress" | "completed",
+        type: "release" as const,
+        progress: 0,
+        targetDate: release.releaseDate
+      }))
+    ];
+
+    const itemsByStatus = {
+      "Planned": allItems.filter(item => item.status === "planned"),
+      "In Progress": allItems.filter(item => item.status === "in_progress"),
+      "Completed": allItems.filter(item => item.status === "completed"),
     };
 
     return (
       <div className="mt-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {Object.entries(epicsByStatus).map(([columnName, columnEpics]) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Object.entries(itemsByStatus).map(([columnName, columnItems]) => (
             <div key={columnName} className="flex flex-col">
-              <h3 className="font-semibold mb-2 px-2">{columnName} <Badge>{columnEpics.length}</Badge></h3>
-              <div className="bg-muted rounded-md p-2 flex-1 min-h-[200px]">
-                {columnEpics.map(epic => {
-                  const featureCount = getEpicFeatureCount(epic.id);
-                  return (
-                    <Card key={epic.id} className="mb-2 cursor-pointer hover:border-primary">
-                      <CardContent className="p-3">
-                        <div className="font-medium text-sm mb-2">{epic.title}</div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {featureCount} feature{featureCount !== 1 ? 's' : ''}
+              <h3 className="font-semibold mb-2 px-2">{columnName} <Badge>{columnItems.length}</Badge></h3>
+              <div className="bg-muted rounded-md p-2 flex-1 min-h-[400px]">
+                {columnItems.map(item => (
+                  <Card key={item.id} className="mb-2 cursor-pointer hover:border-primary">
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge className={
+                          item.type === "goal" ? "bg-blue-500" :
+                          item.type === "epic" ? "bg-purple-500" :
+                          "bg-green-500"
+                        }>
+                          {item.type}
+                        </Badge>
+                      </div>
+                      <div className="font-medium text-sm mb-2">{item.title}</div>
+                      <div className="text-xs text-muted-foreground mb-2 line-clamp-2">{item.description}</div>
+                      {item.type !== "release" && (
+                        <>
+                          <Progress value={item.progress} className="h-1 mt-2" />
+                          <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
+                            <span>{item.progress}%</span>
+                            {item.targetDate && (
+                              <span>{new Date(item.targetDate).toLocaleDateString()}</span>
+                            )}
+                          </div>
+                        </>
+                      )}
+                      {item.type === "release" && item.targetDate && (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          {new Date(item.targetDate).toLocaleDateString()}
                         </div>
-                        <Progress value={epic.progress} className="h-1 mt-2" />
-                        <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
-                          <span>{epic.progress}%</span>
-                          {epic.targetDate && (
-                            <span>{new Date(epic.targetDate).toLocaleDateString()}</span>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+                {columnItems.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    No items here
+                  </div>
+                )}
               </div>
             </div>
           ))}

@@ -85,7 +85,10 @@ export const RoadmapManagement = () => {
   ];
 
   const handleAddRoadmapItem = () => {
-    if (!newItemTitle.trim()) return;
+    if (!newItemTitle.trim()) {
+      toast.error("Please enter a title");
+      return;
+    }
     
     const baseItem = {
       id: `${selectedType}-${Date.now()}`,
@@ -97,34 +100,39 @@ export const RoadmapManagement = () => {
       targetDate: new Date()
     };
 
-    if (selectedType === "goal") {
-      const newGoal: Goal = {
-        ...baseItem,
-        status: "not_started" as const
-      };
-      addGoal(newGoal);
-    } else if (selectedType === "epic") {
-      const newEpic: Epic = {
-        ...baseItem,
-        status: "backlog" as const,
-        features: []
-      };
-      addEpic(newEpic);
-    } else if (selectedType === "release") {
-      const newRelease: Release = {
-        ...baseItem,
-        name: newItemTitle,
-        status: "planned" as const,
-        version: "1.0.0",
-        releaseDate: new Date(),
-        features: [],
-        epics: []
-      };
-      addRelease(newRelease);
+    try {
+      if (selectedType === "goal") {
+        const newGoal: Goal = {
+          ...baseItem,
+          status: "not_started" as const
+        };
+        addGoal(newGoal);
+      } else if (selectedType === "epic") {
+        const newEpic: Epic = {
+          ...baseItem,
+          status: "backlog" as const,
+          features: []
+        };
+        addEpic(newEpic);
+      } else if (selectedType === "release") {
+        const newRelease: Release = {
+          ...baseItem,
+          name: newItemTitle,
+          status: "planned" as const,
+          version: "1.0.0",
+          releaseDate: new Date(),
+          features: [],
+          epics: []
+        };
+        addRelease(newRelease);
+      }
+      
+      toast.success(`New ${selectedType} added successfully`);
+      setNewItemTitle("");
+    } catch (error) {
+      toast.error(`Failed to add ${selectedType}`);
+      console.error("Error adding item:", error);
     }
-    
-    toast.success(`New ${selectedType} added to roadmap`);
-    setNewItemTitle("");
   };
 
   const handleEditItem = (item: RoadmapItem) => {
@@ -134,49 +142,59 @@ export const RoadmapManagement = () => {
   const handleSaveEdit = () => {
     if (!editingItem) return;
 
-    if (editingItem.type === "goal") {
-      const goal = goals.find(g => g.id === editingItem.id);
-      if (goal) {
-        updateGoal({
-          ...goal,
-          title: editingItem.title,
-          description: editingItem.description
-        });
+    try {
+      if (editingItem.type === "goal") {
+        const goal = goals.find(g => g.id === editingItem.id);
+        if (goal) {
+          updateGoal({
+            ...goal,
+            title: editingItem.title,
+            description: editingItem.description
+          });
+        }
+      } else if (editingItem.type === "epic") {
+        const epic = epics.find(e => e.id === editingItem.id);
+        if (epic) {
+          updateEpic({
+            ...epic,
+            title: editingItem.title,
+            description: editingItem.description
+          });
+        }
+      } else if (editingItem.type === "release") {
+        const release = releases.find(r => r.id === editingItem.id);
+        if (release) {
+          updateRelease({
+            ...release,
+            name: editingItem.title,
+            description: editingItem.description
+          });
+        }
       }
-    } else if (editingItem.type === "epic") {
-      const epic = epics.find(e => e.id === editingItem.id);
-      if (epic) {
-        updateEpic({
-          ...epic,
-          title: editingItem.title,
-          description: editingItem.description
-        });
-      }
-    } else if (editingItem.type === "release") {
-      const release = releases.find(r => r.id === editingItem.id);
-      if (release) {
-        updateRelease({
-          ...release,
-          name: editingItem.title,
-          description: editingItem.description
-        });
-      }
-    }
 
-    setEditingItem(null);
-    toast.success(`${editingItem.type} updated`);
+      setEditingItem(null);
+      toast.success(`${editingItem.type} updated successfully`);
+    } catch (error) {
+      toast.error(`Failed to update ${editingItem.type}`);
+      console.error("Error updating item:", error);
+    }
   };
 
   const handleDeleteItem = (item: RoadmapItem) => {
-    if (item.type === "goal") {
-      deleteGoal(item.id);
-    } else if (item.type === "epic") {
-      deleteEpic(item.id);
-    } else if (item.type === "release") {
-      deleteRelease(item.id);
+    try {
+      if (item.type === "goal") {
+        deleteGoal(item.id);
+      } else if (item.type === "epic") {
+        deleteEpic(item.id);
+      } else if (item.type === "release") {
+        deleteRelease(item.id);
+      }
+      
+      toast.success(`${item.type} deleted successfully`);
+    } catch (error) {
+      toast.error(`Failed to delete ${item.type}`);
+      console.error("Error deleting item:", error);
     }
-    
-    toast.success(`${item.type} deleted`);
   };
 
   const getTypeColor = (type: string) => {
@@ -205,14 +223,19 @@ export const RoadmapManagement = () => {
             placeholder="Add new roadmap item..."
             value={newItemTitle}
             onChange={(e) => setNewItemTitle(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAddRoadmapItem()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleAddRoadmapItem();
+              }
+            }}
           />
         </div>
         <div className="flex gap-2">
           <select 
             value={selectedType} 
             onChange={(e) => setSelectedType(e.target.value as "goal" | "epic" | "release")}
-            className="px-3 py-2 border rounded-md"
+            className="px-3 py-2 border rounded-md bg-background"
           >
             <option value="goal">Goal</option>
             <option value="epic">Epic</option>
@@ -242,7 +265,15 @@ export const RoadmapManagement = () => {
                   <Button variant="ghost" size="sm" onClick={() => handleEditItem(item)}>
                     <Edit className="h-3 w-3" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDeleteItem(item)}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      if (confirm(`Are you sure you want to delete this ${item.type}?`)) {
+                        handleDeleteItem(item);
+                      }
+                    }}
+                  >
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
@@ -253,7 +284,12 @@ export const RoadmapManagement = () => {
                     value={editingItem.title}
                     onChange={(e) => setEditingItem({...editingItem, title: e.target.value})}
                     onBlur={handleSaveEdit}
-                    onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleSaveEdit();
+                      }
+                    }}
                     autoFocus
                   />
                 ) : (
@@ -268,7 +304,12 @@ export const RoadmapManagement = () => {
                     value={editingItem.description}
                     onChange={(e) => setEditingItem({...editingItem, description: e.target.value})}
                     onBlur={handleSaveEdit}
-                    onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleSaveEdit();
+                      }
+                    }}
                   />
                 ) : (
                   item.description
