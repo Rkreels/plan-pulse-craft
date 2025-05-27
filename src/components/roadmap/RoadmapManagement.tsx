@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +30,7 @@ export const RoadmapManagement = () => {
       description: goal.description,
       status: goal.status as "planned" | "in_progress" | "completed",
       type: "goal" as const,
-      targetDate: goal.targetDate || "",
+      targetDate: goal.targetDate ? (goal.targetDate instanceof Date ? goal.targetDate.toISOString() : goal.targetDate.toString()) : "",
       progress: goal.progress
     })),
     ...epics.map(epic => ({
@@ -40,7 +39,7 @@ export const RoadmapManagement = () => {
       description: epic.description,
       status: epic.status === "backlog" ? "planned" : epic.status as "planned" | "in_progress" | "completed",
       type: "epic" as const,
-      targetDate: epic.targetDate || "",
+      targetDate: epic.targetDate ? (epic.targetDate instanceof Date ? epic.targetDate.toISOString() : epic.targetDate.toString()) : "",
       progress: epic.progress
     })),
     ...releases.map(release => ({
@@ -49,7 +48,7 @@ export const RoadmapManagement = () => {
       description: release.description,
       status: release.status === "delayed" ? "in_progress" : release.status as "planned" | "in_progress" | "completed",
       type: "release" as const,
-      targetDate: release.releaseDate,
+      targetDate: release.releaseDate instanceof Date ? release.releaseDate.toISOString() : release.releaseDate.toString(),
       progress: 0
     }))
   ];
