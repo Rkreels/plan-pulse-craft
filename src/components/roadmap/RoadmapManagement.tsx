@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,13 @@ export const RoadmapManagement = () => {
   const [newItemTitle, setNewItemTitle] = useState("");
   const [selectedType, setSelectedType] = useState<"goal" | "epic" | "release">("goal");
 
+  // Helper function to safely convert dates to strings
+  const dateToString = (date: Date | string | undefined): string => {
+    if (!date) return "";
+    if (date instanceof Date) return date.toISOString();
+    return String(date);
+  };
+
   // Combine all roadmap items
   const roadmapItems: RoadmapItem[] = [
     ...goals.map(goal => ({
@@ -30,7 +38,7 @@ export const RoadmapManagement = () => {
       description: goal.description,
       status: goal.status as "planned" | "in_progress" | "completed",
       type: "goal" as const,
-      targetDate: goal.targetDate ? (goal.targetDate instanceof Date ? goal.targetDate.toISOString() : goal.targetDate.toString()) : "",
+      targetDate: dateToString(goal.targetDate),
       progress: goal.progress
     })),
     ...epics.map(epic => ({
@@ -39,7 +47,7 @@ export const RoadmapManagement = () => {
       description: epic.description,
       status: epic.status === "backlog" ? "planned" : epic.status as "planned" | "in_progress" | "completed",
       type: "epic" as const,
-      targetDate: epic.targetDate ? (epic.targetDate instanceof Date ? epic.targetDate.toISOString() : epic.targetDate.toString()) : "",
+      targetDate: dateToString(epic.targetDate),
       progress: epic.progress
     })),
     ...releases.map(release => ({
@@ -48,7 +56,7 @@ export const RoadmapManagement = () => {
       description: release.description,
       status: release.status === "delayed" ? "in_progress" : release.status as "planned" | "in_progress" | "completed",
       type: "release" as const,
-      targetDate: release.releaseDate instanceof Date ? release.releaseDate.toISOString() : release.releaseDate.toString(),
+      targetDate: dateToString(release.releaseDate),
       progress: 0
     }))
   ];
