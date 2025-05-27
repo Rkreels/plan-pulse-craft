@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { SidebarMenuItem } from "@/components/ui/sidebar";
+import { useNavigate } from "react-router-dom";
 
 export interface NavigationItem {
   title: string;
@@ -49,7 +50,6 @@ export const getNavigationItems = (): NavigationItem[] => [
   {
     title: "Features",
     path: "/features",
-    icon: Target,
     icon: Zap,
     roles: ["admin", "product_manager", "executive", "developer"]
   },
@@ -166,19 +166,24 @@ interface SidebarItemsProps {
 }
 
 export const SidebarItems = ({ items, isActive }: SidebarItemsProps) => {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-1">
       {items.map((item) => {
         const Icon = item.icon;
         return (
           <SidebarMenuItem 
-            key={item.path} 
-            path={item.path}
-            isActive={isActive(item.path)}
-            className="w-full justify-start"
+            key={item.path}
+            className="w-full justify-start cursor-pointer"
+            onClick={() => navigate(item.path)}
           >
-            <Icon className="mr-2 h-4 w-4" />
-            {item.title}
+            <div className={`flex items-center w-full p-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
+              isActive(item.path) ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : ''
+            }`}>
+              <Icon className="mr-2 h-4 w-4" />
+              {item.title}
+            </div>
           </SidebarMenuItem>
         );
       })}
