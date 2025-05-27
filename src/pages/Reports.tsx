@@ -4,6 +4,7 @@ import { PageTitle } from "@/components/common/PageTitle";
 import { ReportsList } from "@/components/reports/ReportsList";
 import { ReportBuilder } from "@/components/reports/ReportBuilder";
 import { ReportDashboard } from "@/components/reports/ReportDashboard";
+import { AIInsights } from "@/components/reports/AIInsights";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Reports = () => {
@@ -18,7 +19,7 @@ const Reports = () => {
     <>
       <PageTitle
         title="Advanced Reports"
-        description="Create, customize, and share insightful product reports with real-time analytics"
+        description="Create, customize, and share insightful product reports with real-time analytics and AI-powered insights"
       />
       
       <Tabs defaultValue="myReports" className="space-y-4">
@@ -44,8 +45,7 @@ const Reports = () => {
           <ReportDashboard />
         </TabsContent>
         <TabsContent value="insights" className="space-y-4">
-          <h2 className="text-lg font-medium">AI-Powered Insights</h2>
-          <p className="text-muted-foreground">Coming soon: AI-generated insights and recommendations based on your product data.</p>
+          <AIInsights />
         </TabsContent>
       </Tabs>
     </>

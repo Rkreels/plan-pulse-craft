@@ -1,183 +1,187 @@
 
-import { Button } from "@/components/ui/button";
-import { 
-  SidebarMenu, 
-  SidebarMenuButton, 
-  SidebarMenuItem
-} from "@/components/ui/sidebar";
-import { 
-  BarChart3, 
-  CalendarDays, 
-  CheckSquare, 
-  Goal, 
-  LayoutDashboard, 
-  LightbulbIcon, 
-  MessagesSquare, 
-  Settings, 
-  Tags,
-  FileText,
+import {
+  Home,
+  Lightbulb,
+  Target,
   Users,
-  LineChart,
+  Calendar,
+  Settings,
+  BarChart3,
+  FileText,
+  Database,
+  MessageSquare,
   GitBranch,
-  PieChart,
-  GitMerge,
-  Flag,
+  Layers,
+  Zap,
+  CheckSquare,
   TrendingUp,
-  Activity,
-  BarChart,
-  Target
+  Building,
+  Globe,
+  Shield,
+  Briefcase,
+  PieChart,
+  LineChart,
+  Activity
 } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
 
-export type MenuItem = {
+import { SidebarMenuItem } from "@/components/ui/sidebar";
+
+export interface NavigationItem {
   title: string;
   path: string;
   icon: React.ElementType;
   roles: string[];
-};
+}
+
+export const getNavigationItems = (): NavigationItem[] => [
+  {
+    title: "Dashboard",
+    path: "/",
+    icon: Home,
+    roles: ["admin", "product_manager", "executive", "developer", "customer"]
+  },
+  {
+    title: "Ideas",
+    path: "/ideas",
+    icon: Lightbulb,
+    roles: ["admin", "product_manager", "executive", "developer", "customer"]
+  },
+  {
+    title: "Features",
+    path: "/features",
+    icon: Target,
+    icon: Zap,
+    roles: ["admin", "product_manager", "executive", "developer"]
+  },
+  {
+    title: "Roadmap",
+    path: "/roadmap",
+    icon: GitBranch,
+    roles: ["admin", "product_manager", "executive"]
+  },
+  {
+    title: "Releases",
+    path: "/releases",
+    icon: Calendar,
+    roles: ["admin", "product_manager", "executive", "developer"]
+  },
+  {
+    title: "Goals",
+    path: "/goals",
+    icon: Target,
+    roles: ["admin", "product_manager", "executive"]
+  },
+  {
+    title: "Strategy",
+    path: "/strategy",
+    icon: Briefcase,
+    roles: ["admin", "product_manager", "executive"]
+  },
+  {
+    title: "Requirements",
+    path: "/requirements",
+    icon: CheckSquare,
+    roles: ["admin", "product_manager", "developer"]
+  },
+  {
+    title: "Tasks",
+    path: "/tasks",
+    icon: CheckSquare,
+    roles: ["admin", "product_manager", "developer"]
+  }
+];
+
+export const getWorkspaceItems = (): NavigationItem[] => [
+  {
+    title: "Analytics",
+    path: "/analytics",
+    icon: TrendingUp,
+    roles: ["admin", "product_manager", "executive"]
+  },
+  {
+    title: "Reports",
+    path: "/reports", 
+    icon: FileText,
+    roles: ["admin", "product_manager", "executive"]
+  },
+  {
+    title: "Dashboards",
+    path: "/dashboards",
+    icon: PieChart,
+    roles: ["admin", "product_manager", "executive"]
+  },
+  {
+    title: "Capacity Planning",
+    path: "/capacity-planning",
+    icon: Activity,
+    roles: ["admin", "product_manager", "executive"]
+  },
+  {
+    title: "Team",
+    path: "/team",
+    icon: Users,
+    roles: ["admin", "product_manager"]
+  },
+  {
+    title: "Feedback",
+    path: "/feedback",
+    icon: MessageSquare,
+    roles: ["admin", "product_manager", "executive", "customer"]
+  },
+  {
+    title: "Customer Portal",
+    path: "/customer-portal",
+    icon: Globe,
+    roles: ["admin", "product_manager", "customer"]
+  },
+  {
+    title: "Competitor Analysis",
+    path: "/competitor-analysis",
+    icon: Building,
+    roles: ["admin", "product_manager", "executive"]
+  },
+  {
+    title: "Integrations",
+    path: "/integrations",
+    icon: Database,
+    roles: ["admin", "product_manager"]
+  },
+  {
+    title: "Permissions",
+    path: "/permissions",
+    icon: Shield,
+    roles: ["admin"]
+  },
+  {
+    title: "Documentation",
+    path: "/documentation",
+    icon: FileText,
+    roles: ["admin", "product_manager", "developer"]
+  }
+];
 
 interface SidebarItemsProps {
-  items: MenuItem[];
+  items: NavigationItem[];
   isActive: (path: string) => boolean;
 }
 
 export const SidebarItems = ({ items, isActive }: SidebarItemsProps) => {
-  const navigate = useNavigate();
-  
   return (
-    <SidebarMenu>
-      {items.map((item) => (
-        <SidebarMenuItem key={item.path}>
-          <SidebarMenuButton asChild>
-            <Button
-              variant={isActive(item.path) ? "secondary" : "ghost"}
-              className="w-full justify-start gap-2"
-              onClick={() => navigate(item.path)}
-            >
-              <item.icon className="h-4 w-4" />
-              <span>{item.title}</span>
-            </Button>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      ))}
-    </SidebarMenu>
+    <div className="space-y-1">
+      {items.map((item) => {
+        const Icon = item.icon;
+        return (
+          <SidebarMenuItem 
+            key={item.path} 
+            path={item.path}
+            isActive={isActive(item.path)}
+            className="w-full justify-start"
+          >
+            <Icon className="mr-2 h-4 w-4" />
+            {item.title}
+          </SidebarMenuItem>
+        );
+      })}
+    </div>
   );
-};
-
-export const getNavigationItems = (): MenuItem[] => {
-  return [
-    {
-      title: "Dashboard",
-      path: "/",
-      icon: LayoutDashboard,
-      roles: ["admin", "product_manager", "executive", "developer", "customer"]
-    },
-    {
-      title: "Strategic Planning",
-      path: "/strategy",
-      icon: Flag,
-      roles: ["admin", "product_manager", "executive"]
-    },
-    {
-      title: "Roadmap",
-      path: "/roadmap",
-      icon: BarChart3,
-      roles: ["admin", "product_manager", "executive", "developer", "customer"]
-    },
-    {
-      title: "Goals",
-      path: "/goals",
-      icon: Goal,
-      roles: ["admin", "product_manager", "executive"]
-    },
-    {
-      title: "Releases",
-      path: "/releases",
-      icon: CalendarDays,
-      roles: ["admin", "product_manager", "executive", "developer"]
-    },
-    {
-      title: "Features",
-      path: "/features",
-      icon: Tags,
-      roles: ["admin", "product_manager", "executive", "developer", "customer"]
-    },
-    {
-      title: "Ideas",
-      path: "/ideas",
-      icon: LightbulbIcon,
-      roles: ["admin", "product_manager", "executive", "developer", "customer"]
-    },
-    {
-      title: "Feedback",
-      path: "/feedback",
-      icon: MessagesSquare,
-      roles: ["admin", "product_manager", "executive", "developer", "customer"]
-    },
-    {
-      title: "Customer Portal",
-      path: "/customer-portal",
-      icon: Users,
-      roles: ["admin", "product_manager", "executive"]
-    },
-    {
-      title: "Competitor Analysis",
-      path: "/competitor-analysis",
-      icon: Target,
-      roles: ["admin", "product_manager", "executive"]
-    },
-    {
-      title: "Capacity Planning",
-      path: "/capacity-planning",
-      icon: Activity,
-      roles: ["admin", "product_manager", "developer"]
-    },
-    {
-      title: "Reports",
-      path: "/reports",
-      icon: BarChart,
-      roles: ["admin", "product_manager", "executive"]
-    },
-    {
-      title: "Analytics",
-      path: "/analytics",
-      icon: LineChart,
-      roles: ["admin", "product_manager", "executive"]
-    },
-    {
-      title: "Dashboards",
-      path: "/dashboards",
-      icon: PieChart,
-      roles: ["admin", "product_manager", "executive"]
-    },
-    {
-      title: "Documentation",
-      path: "/documentation",
-      icon: FileText,
-      roles: ["admin", "product_manager", "executive", "developer"]
-    },
-  ];
-};
-
-export const getWorkspaceItems = (): MenuItem[] => {
-  return [
-    {
-      title: "Team",
-      path: "/team",
-      icon: Users,
-      roles: ["admin", "product_manager", "executive", "developer"]
-    },
-    {
-      title: "Integrations",
-      path: "/integrations",
-      icon: GitBranch,
-      roles: ["admin", "product_manager", "developer"]
-    },
-    {
-      title: "Permissions",
-      path: "/permissions",
-      icon: GitMerge,
-      roles: ["admin", "product_manager"]
-    },
-  ];
 };
