@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { PageTitle } from "@/components/common/PageTitle";
 import { useAppContext } from "@/contexts/AppContext";
@@ -20,9 +21,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Plus, Settings, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddEditRoadmapViewDialog } from "@/components/dialogs/AddEditRoadmapViewDialog";
 import { AddEditGoalDialog } from "@/components/dialogs/AddEditGoalDialog";
 import { AddEditReleaseDialog } from "@/components/dialogs/AddEditReleaseDialog";
+import { RoadmapManagement } from "@/components/roadmap/RoadmapManagement";
 import { RoadmapView, Goal, Release, Epic } from "@/types";
 import { toast } from "sonner";
 
@@ -387,48 +390,73 @@ const Roadmap = () => {
     <div className="space-y-6">
       <PageTitle
         title="Product Roadmap"
-        description="Strategic view of your product plan"
+        description="Strategic view of your product plan with comprehensive roadmap management"
       />
       
-      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
-          <Select
-            value={currentView?.id || ""}
-            onValueChange={(value) => {
-              const view = roadmapViews.find(v => v.id === value);
-              if (view) setCurrentView(view);
-            }}
-          >
-            <SelectTrigger className="w-full md:w-[180px]">
-              <SelectValue placeholder="Select view" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Roadmap Views</SelectLabel>
-                {roadmapViews.map(view => (
-                  <SelectItem key={view.id} value={view.id}>
-                    {view.name}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+      <Tabs defaultValue="timeline" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="timeline">Timeline View</TabsTrigger>
+          <TabsTrigger value="board">Board View</TabsTrigger>
+          <TabsTrigger value="manage">Manage Items</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="timeline" className="space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
+              <Select
+                value={currentView?.id || ""}
+                onValueChange={(value) => {
+                  const view = roadmapViews.find(v => v.id === value);
+                  if (view) setCurrentView(view);
+                }}
+              >
+                <SelectTrigger className="w-full md:w-[180px]">
+                  <SelectValue placeholder="Select view" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Roadmap Views</SelectLabel>
+                    {roadmapViews.map(view => (
+                      <SelectItem key={view.id} value={view.id}>
+                        {view.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              
+              <Badge variant="outline" className="capitalize">
+                {currentView?.type || "timeline"}
+              </Badge>
+
+              <Button variant="outline" size="sm" onClick={handleEditViewClick}>
+                <Settings className="h-4 w-4 mr-2" /> Edit view
+              </Button>
+            </div>
+
+            <Button onClick={handleAddViewClick}>
+              <Plus className="h-4 w-4 mr-2" /> New View
+            </Button>
+          </div>
           
-          <Badge variant="outline" className="capitalize">
-            {currentView?.type || "timeline"}
-          </Badge>
+          {renderTimelineView()}
+        </TabsContent>
 
-          <Button variant="outline" size="sm" onClick={handleEditViewClick}>
-            <Settings className="h-4 w-4 mr-2" /> Edit view
-          </Button>
-        </div>
+        <TabsContent value="board" className="space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+            <Badge variant="outline" className="capitalize">Board View</Badge>
+            <Button onClick={handleAddViewClick}>
+              <Plus className="h-4 w-4 mr-2" /> New View
+            </Button>
+          </div>
+          
+          {renderBoardView()}
+        </TabsContent>
 
-        <Button onClick={handleAddViewClick}>
-          <Plus className="h-4 w-4 mr-2" /> New View
-        </Button>
-      </div>
-      
-      {currentView?.type === 'board' ? renderBoardView() : renderTimelineView()}
+        <TabsContent value="manage" className="space-y-4">
+          <RoadmapManagement />
+        </TabsContent>
+      </Tabs>
 
       <AddEditRoadmapViewDialog
         open={isAddEditViewDialogOpen}

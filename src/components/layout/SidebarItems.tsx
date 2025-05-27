@@ -175,15 +175,18 @@ export const SidebarItems = ({ items, isActive }: SidebarItemsProps) => {
         return (
           <SidebarMenuItem 
             key={item.path}
-            className="w-full justify-start cursor-pointer"
-            onClick={() => navigate(item.path)}
           >
-            <div className={`flex items-center w-full p-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
-              isActive(item.path) ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : ''
-            }`}>
-              <Icon className="mr-2 h-4 w-4" />
-              {item.title}
-            </div>
+            <button
+              onClick={() => navigate(item.path)}
+              className={`flex items-center w-full p-2 rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
+                isActive(item.path) 
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' 
+                  : 'text-sidebar-foreground'
+              }`}
+            >
+              <Icon className="mr-3 h-4 w-4" />
+              <span className="text-sm">{item.title}</span>
+            </button>
           </SidebarMenuItem>
         );
       })}
