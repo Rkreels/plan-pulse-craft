@@ -38,6 +38,7 @@ export const RoadmapManagement = () => {
   } = useAppContext();
   
   const [newItemTitle, setNewItemTitle] = useState("");
+  const [newItemDescription, setNewItemDescription] = useState("");
   const [selectedType, setSelectedType] = useState<"goal" | "epic" | "release">("goal");
   const [editingItem, setEditingItem] = useState<RoadmapItem | null>(null);
 
@@ -93,11 +94,13 @@ export const RoadmapManagement = () => {
     const baseItem = {
       id: `${selectedType}-${Date.now()}`,
       title: newItemTitle,
-      description: `New ${selectedType}`,
+      description: newItemDescription || `New ${selectedType}`,
       ownerId: currentUser?.id || "",
       workspaceId: workspace?.id || "",
       progress: 0,
-      targetDate: new Date()
+      targetDate: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
 
     try {
@@ -129,6 +132,7 @@ export const RoadmapManagement = () => {
       
       toast.success(`New ${selectedType} added successfully`);
       setNewItemTitle("");
+      setNewItemDescription("");
     } catch (error) {
       toast.error(`Failed to add ${selectedType}`);
       console.error("Error adding item:", error);
@@ -149,7 +153,8 @@ export const RoadmapManagement = () => {
           updateGoal({
             ...goal,
             title: editingItem.title,
-            description: editingItem.description
+            description: editingItem.description,
+            updatedAt: new Date()
           });
         }
       } else if (editingItem.type === "epic") {
@@ -158,7 +163,8 @@ export const RoadmapManagement = () => {
           updateEpic({
             ...epic,
             title: editingItem.title,
-            description: editingItem.description
+            description: editingItem.description,
+            updatedAt: new Date()
           });
         }
       } else if (editingItem.type === "release") {
@@ -167,7 +173,8 @@ export const RoadmapManagement = () => {
           updateRelease({
             ...release,
             name: editingItem.title,
-            description: editingItem.description
+            description: editingItem.description,
+            updatedAt: new Date()
           });
         }
       }
@@ -217,18 +224,17 @@ export const RoadmapManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            placeholder="Add new roadmap item..."
+            placeholder="Enter title..."
             value={newItemTitle}
             onChange={(e) => setNewItemTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleAddRoadmapItem();
-              }
-            }}
+          />
+          <Input
+            placeholder="Enter description..."
+            value={newItemDescription}
+            onChange={(e) => setNewItemDescription(e.target.value)}
           />
         </div>
         <div className="flex gap-2">
@@ -243,7 +249,7 @@ export const RoadmapManagement = () => {
           </select>
           <Button onClick={handleAddRoadmapItem}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Item
+            Add {selectedType}
           </Button>
         </div>
       </div>
@@ -254,10 +260,10 @@ export const RoadmapManagement = () => {
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <Badge className={getTypeColor(item.type)}>
+                  <Badge className={`${getTypeColor(item.type)} text-white`}>
                     {item.type}
                   </Badge>
-                  <Badge variant="outline" className={getStatusColor(item.status)}>
+                  <Badge variant="outline" className={`${getStatusColor(item.status)} text-white`}>
                     {item.status.replace('_', ' ')}
                   </Badge>
                 </div>
@@ -289,6 +295,9 @@ export const RoadmapManagement = () => {
                         e.preventDefault();
                         handleSaveEdit();
                       }
+                      if (e.key === "Escape") {
+                        setEditingItem(null);
+                      }
                     }}
                     autoFocus
                   />
@@ -298,7 +307,7 @@ export const RoadmapManagement = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+              <p className="text-sm text-muted-foreground mb-3">
                 {editingItem?.id === item.id ? (
                   <Input
                     value={editingItem.description}
@@ -308,6 +317,9 @@ export const RoadmapManagement = () => {
                       if (e.key === "Enter") {
                         e.preventDefault();
                         handleSaveEdit();
+                      }
+                      if (e.key === "Escape") {
+                        setEditingItem(null);
                       }
                     }}
                   />
@@ -340,10 +352,6 @@ export const RoadmapManagement = () => {
           <p className="text-muted-foreground mb-4">
             Start by adding goals, epics, or releases to your roadmap
           </p>
-          <Button onClick={() => setNewItemTitle("My first roadmap item")}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Your First Item
-          </Button>
         </div>
       )}
     </div>

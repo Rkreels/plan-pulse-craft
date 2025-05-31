@@ -21,6 +21,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { RoadmapView } from "@/types";
 import { useAppContext } from "@/contexts/AppContext";
+import { toast } from "sonner";
 
 interface AddEditRoadmapViewDialogProps {
   open: boolean;
@@ -54,11 +55,14 @@ export function AddEditRoadmapViewDialog({
   }, [view, open]);
 
   const handleSave = () => {
-    if (!name) return;
+    if (!name.trim()) {
+      toast.error("Please enter a view name");
+      return;
+    }
 
     const updatedView: RoadmapView = {
       id: view?.id || `view-${Date.now()}`,
-      name,
+      name: name.trim(),
       type,
       filters: view?.filters || [],
       isDefault,
@@ -68,17 +72,37 @@ export function AddEditRoadmapViewDialog({
       groupBy: view?.groupBy
     };
 
-    onSave(updatedView);
+    try {
+      onSave(updatedView);
+      onOpenChange(false);
+      toast.success(`View ${view ? 'updated' : 'created'} successfully`);
+    } catch (error) {
+      toast.error(`Failed to ${view ? 'update' : 'create'} view`);
+      console.error("Error saving view:", error);
+    }
+  };
+
+  const handleCancel = () => {
     onOpenChange(false);
+    // Reset form
+    if (view) {
+      setName(view.name);
+      setType(view.type);
+      setIsDefault(view.isDefault);
+    } else {
+      setName("");
+      setType("timeline");
+      setIsDefault(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{view ? "Edit" : "Add"} Roadmap View</DialogTitle>
+          <DialogTitle>{view ? "Edit" : "Create"} Roadmap View</DialogTitle>
           <DialogDescription>
-            {view ? "Update this roadmap view." : "Create a new view to visualize your roadmap."}
+            {view ? "Update this roadmap view settings." : "Create a new view to visualize your roadmap data."}
           </DialogDescription>
         </DialogHeader>
 
@@ -89,7 +113,13 @@ export function AddEditRoadmapViewDialog({
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter view name"
+              placeholder="Enter view name..."
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleSave();
+                }
+              }}
             />
           </div>
 
@@ -100,8 +130,8 @@ export function AddEditRoadmapViewDialog({
                 <SelectValue placeholder="Select view type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="timeline">Timeline</SelectItem>
-                <SelectItem value="board">Board</SelectItem>
+                <SelectItem value="timeline">Timeline View</SelectItem>
+                <SelectItem value="board">Board View</SelectItem>
                 <SelectItem value="gantt">Gantt Chart</SelectItem>
                 <SelectItem value="list">List View</SelectItem>
               </SelectContent>
@@ -114,13 +144,19 @@ export function AddEditRoadmapViewDialog({
               checked={isDefault} 
               onCheckedChange={(checked) => setIsDefault(checked === true)}
             />
-            <Label htmlFor="is-default">Set as default view</Label>
+            <Label htmlFor="is-default" className="text-sm">
+              Set as default view
+            </Label>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSave} disabled={!name}>Save</Button>
+          <Button variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={!name.trim()}>
+            {view ? "Update" : "Create"} View
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

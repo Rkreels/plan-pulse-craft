@@ -168,24 +168,24 @@ export const SidebarItems = ({ items, isActive }: SidebarItemsProps) => {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-1">
+    <nav className="space-y-1">
       {items.map((item) => {
         const Icon = item.icon;
         return (
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className={`flex items-center w-full p-2 rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
+            className={`flex items-center w-full px-3 py-2 text-sm rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
               isActive(item.path) 
                 ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' 
                 : 'text-sidebar-foreground'
             }`}
           >
-            <Icon className="mr-3 h-4 w-4" />
-            <span className="text-sm">{item.title}</span>
+            <Icon className="mr-3 h-4 w-4 flex-shrink-0" />
+            <span>{item.title}</span>
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 };

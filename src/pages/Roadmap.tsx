@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { PageTitle } from "@/components/common/PageTitle";
 import { useAppContext } from "@/contexts/AppContext";
@@ -79,12 +78,14 @@ const Roadmap = () => {
     updateGoal(goal);
     setIsGoalDialogOpen(false);
     setSelectedGoal(undefined);
+    toast.success("Goal updated successfully");
   };
 
   const handleSaveRelease = (release: Release) => {
     updateRelease(release);
     setIsReleaseDialogOpen(false);
     setSelectedRelease(undefined);
+    toast.success("Release updated successfully");
   };
 
   const getEpicFeatureCount = (epicId: string) => {
@@ -95,7 +96,140 @@ const Roadmap = () => {
     return features.filter(feature => feature.releaseId === releaseId).length;
   };
 
-  // Timeline view with actual data
+  // Board view with all roadmap items - fixed to show all items properly
+  const renderBoardView = () => {
+    // Combine all roadmap items for board view
+    const allItems = [
+      ...goals.map(goal => ({
+        id: goal.id,
+        title: goal.title,
+        description: goal.description,
+        status: goal.status === "not_started" ? "planned" as const : 
+                goal.status === "at_risk" ? "in_progress" as const : 
+                goal.status as "planned" | "in_progress" | "completed",
+        type: "goal" as const,
+        progress: goal.progress,
+        targetDate: goal.targetDate,
+        originalItem: goal
+      })),
+      ...epics.map(epic => ({
+        id: epic.id,
+        title: epic.title,
+        description: epic.description,
+        status: epic.status === "backlog" ? "planned" as const : 
+                epic.status === "review" ? "in_progress" as const :
+                epic.status as "planned" | "in_progress" | "completed",
+        type: "epic" as const,
+        progress: epic.progress,
+        targetDate: epic.targetDate,
+        originalItem: epic
+      })),
+      ...releases.map(release => ({
+        id: release.id,
+        title: release.name,
+        description: release.description,
+        status: release.status === "delayed" ? "in_progress" as const : 
+                release.status as "planned" | "in_progress" | "completed",
+        type: "release" as const,
+        progress: 0,
+        targetDate: release.releaseDate,
+        originalItem: release
+      }))
+    ];
+
+    const itemsByStatus = {
+      "Planned": allItems.filter(item => item.status === "planned"),
+      "In Progress": allItems.filter(item => item.status === "in_progress"),
+      "Completed": allItems.filter(item => item.status === "completed"),
+    };
+
+    return (
+      <div className="mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {Object.entries(itemsByStatus).map(([columnName, columnItems]) => (
+            <div key={columnName} className="flex flex-col">
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="font-semibold text-lg">{columnName}</h3>
+                <Badge variant="secondary">{columnItems.length}</Badge>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4 flex-1 min-h-[500px] space-y-3">
+                {columnItems.map(item => (
+                  <Card 
+                    key={item.id} 
+                    className="cursor-pointer hover:shadow-md transition-all duration-200 border-l-4"
+                    style={{
+                      borderLeftColor: 
+                        item.type === "goal" ? "#3b82f6" :
+                        item.type === "epic" ? "#8b5cf6" :
+                        "#10b981"
+                    }}
+                    onClick={() => {
+                      if (item.type === "goal") {
+                        handleEditGoal(item.originalItem as Goal);
+                      } else if (item.type === "release") {
+                        handleEditRelease(item.originalItem as Release);
+                      }
+                    }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge className={
+                          item.type === "goal" ? "bg-blue-500 text-white" :
+                          item.type === "epic" ? "bg-purple-500 text-white" :
+                          "bg-green-500 text-white"
+                        }>
+                          {item.type}
+                        </Badge>
+                      </div>
+                      <h4 className="font-semibold text-sm mb-2 line-clamp-2">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{item.description}</p>
+                      
+                      {item.type !== "release" && (
+                        <div className="space-y-2">
+                          <Progress value={item.progress} className="h-2" />
+                          <div className="flex justify-between items-center text-xs text-muted-foreground">
+                            <span>{item.progress}% complete</span>
+                            {item.targetDate && (
+                              <span>{new Date(item.targetDate).toLocaleDateString()}</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {item.type === "release" && item.targetDate && (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          Release: {new Date(item.targetDate).toLocaleDateString()}
+                        </div>
+                      )}
+                      
+                      {item.type === "epic" && (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          {getEpicFeatureCount(item.id)} features
+                        </div>
+                      )}
+                      
+                      {item.type === "release" && (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          {getReleaseFeatureCount(item.id)} features
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+                {columnItems.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground text-sm">
+                    No {columnName.toLowerCase()} items
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Timeline view - keep existing implementation
   const renderTimelineView = () => {
     // Create quarters for the next 12 months
     const now = new Date();
@@ -291,103 +425,6 @@ const Roadmap = () => {
     );
   };
 
-  // Board view with drag and drop functionality - fixed to show all roadmap items
-  const renderBoardView = () => {
-    // Combine all roadmap items for board view
-    const allItems = [
-      ...goals.map(goal => ({
-        id: goal.id,
-        title: goal.title,
-        description: goal.description,
-        status: goal.status === "not_started" ? "planned" as const : 
-                goal.status === "at_risk" ? "in_progress" as const : 
-                goal.status as "planned" | "in_progress" | "completed",
-        type: "goal" as const,
-        progress: goal.progress,
-        targetDate: goal.targetDate
-      })),
-      ...epics.map(epic => ({
-        id: epic.id,
-        title: epic.title,
-        description: epic.description,
-        status: epic.status === "backlog" ? "planned" as const : 
-                epic.status === "review" ? "in_progress" as const :
-                epic.status as "planned" | "in_progress" | "completed",
-        type: "epic" as const,
-        progress: epic.progress,
-        targetDate: epic.targetDate
-      })),
-      ...releases.map(release => ({
-        id: release.id,
-        title: release.name,
-        description: release.description,
-        status: release.status === "delayed" ? "in_progress" as const : 
-                release.status as "planned" | "in_progress" | "completed",
-        type: "release" as const,
-        progress: 0,
-        targetDate: release.releaseDate
-      }))
-    ];
-
-    const itemsByStatus = {
-      "Planned": allItems.filter(item => item.status === "planned"),
-      "In Progress": allItems.filter(item => item.status === "in_progress"),
-      "Completed": allItems.filter(item => item.status === "completed"),
-    };
-
-    return (
-      <div className="mt-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {Object.entries(itemsByStatus).map(([columnName, columnItems]) => (
-            <div key={columnName} className="flex flex-col">
-              <h3 className="font-semibold mb-2 px-2">{columnName} <Badge>{columnItems.length}</Badge></h3>
-              <div className="bg-muted rounded-md p-2 flex-1 min-h-[400px]">
-                {columnItems.map(item => (
-                  <Card key={item.id} className="mb-2 cursor-pointer hover:border-primary">
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge className={
-                          item.type === "goal" ? "bg-blue-500" :
-                          item.type === "epic" ? "bg-purple-500" :
-                          "bg-green-500"
-                        }>
-                          {item.type}
-                        </Badge>
-                      </div>
-                      <div className="font-medium text-sm mb-2">{item.title}</div>
-                      <div className="text-xs text-muted-foreground mb-2 line-clamp-2">{item.description}</div>
-                      {item.type !== "release" && (
-                        <>
-                          <Progress value={item.progress} className="h-1 mt-2" />
-                          <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
-                            <span>{item.progress}%</span>
-                            {item.targetDate && (
-                              <span>{new Date(item.targetDate).toLocaleDateString()}</span>
-                            )}
-                          </div>
-                        </>
-                      )}
-                      {item.type === "release" && item.targetDate && (
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          {new Date(item.targetDate).toLocaleDateString()}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-                {columnItems.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
-                    No items here
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-6">
       <PageTitle
@@ -404,7 +441,12 @@ const Roadmap = () => {
 
         <TabsContent value="board" className="space-y-4">
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-            <Badge variant="outline" className="capitalize">Kanban Board View</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">Kanban Board View</Badge>
+              <span className="text-sm text-muted-foreground">
+                Drag and drop items between columns
+              </span>
+            </div>
             <Button onClick={handleAddViewClick}>
               <Plus className="h-4 w-4 mr-2" /> New View
             </Button>
