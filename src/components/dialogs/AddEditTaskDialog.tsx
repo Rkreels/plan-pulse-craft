@@ -81,7 +81,15 @@ export function AddEditTaskDialog({
       return;
     }
 
-    onSave(formData);
+    // Convert "none" values back to undefined
+    const processedData = {
+      ...formData,
+      featureId: formData.featureId === "none" ? undefined : formData.featureId,
+      epicId: formData.epicId === "none" ? undefined : formData.epicId,
+      releaseId: formData.releaseId === "none" ? undefined : formData.releaseId,
+    };
+
+    onSave(processedData);
     onOpenChange(false);
   };
 
@@ -176,14 +184,14 @@ export function AddEditTaskDialog({
             <div>
               <Label htmlFor="feature">Linked Feature (Optional)</Label>
               <Select
-                value={formData.featureId || ""}
-                onValueChange={(value) => setFormData({ ...formData, featureId: value || undefined })}
+                value={formData.featureId || "none"}
+                onValueChange={(value) => setFormData({ ...formData, featureId: value === "none" ? undefined : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a feature" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No feature</SelectItem>
+                  <SelectItem value="none">No feature</SelectItem>
                   {features.map((feature) => (
                     <SelectItem key={feature.id} value={feature.id}>
                       {feature.title}
@@ -196,14 +204,14 @@ export function AddEditTaskDialog({
             <div>
               <Label htmlFor="epic">Linked Epic (Optional)</Label>
               <Select
-                value={formData.epicId || ""}
-                onValueChange={(value) => setFormData({ ...formData, epicId: value || undefined })}
+                value={formData.epicId || "none"}
+                onValueChange={(value) => setFormData({ ...formData, epicId: value === "none" ? undefined : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select an epic" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No epic</SelectItem>
+                  <SelectItem value="none">No epic</SelectItem>
                   {epics.map((epic) => (
                     <SelectItem key={epic.id} value={epic.id}>
                       {epic.title}
@@ -216,14 +224,14 @@ export function AddEditTaskDialog({
             <div>
               <Label htmlFor="release">Linked Release (Optional)</Label>
               <Select
-                value={formData.releaseId || ""}
-                onValueChange={(value) => setFormData({ ...formData, releaseId: value || undefined })}
+                value={formData.releaseId || "none"}
+                onValueChange={(value) => setFormData({ ...formData, releaseId: value === "none" ? undefined : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a release" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No release</SelectItem>
+                  <SelectItem value="none">No release</SelectItem>
                   {releases.map((release) => (
                     <SelectItem key={release.id} value={release.id}>
                       {release.name} (v{release.version})

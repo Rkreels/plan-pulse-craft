@@ -50,9 +50,9 @@ const Tasks = () => {
   const { features, epics, releases, currentUser } = useAppContext();
   const { hasRole } = useRoleAccess();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
-  const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [assigneeFilter, setAssigneeFilter] = useState<string>("all");
   const [sortField, setSortField] = useState<string>("priority");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -115,17 +115,17 @@ const Tasks = () => {
       }
       
       // Status filter
-      if (statusFilter && task.status !== statusFilter) {
+      if (statusFilter !== "all" && task.status !== statusFilter) {
         return false;
       }
       
       // Priority filter
-      if (priorityFilter && task.priority !== priorityFilter) {
+      if (priorityFilter !== "all" && task.priority !== priorityFilter) {
         return false;
       }
       
       // Assignee filter
-      if (assigneeFilter && !task.assignedTo?.includes(assigneeFilter)) {
+      if (assigneeFilter !== "all" && !task.assignedTo?.includes(assigneeFilter)) {
         return false;
       }
       
@@ -290,14 +290,14 @@ const Tasks = () => {
                   <div className="space-y-2">
                     <h4 className="font-medium">Status</h4>
                     <Select
-                      value={statusFilter || ""}
-                      onValueChange={(val) => setStatusFilter(val === "" ? null : val)}
+                      value={statusFilter}
+                      onValueChange={(val) => setStatusFilter(val)}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="All statuses" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All statuses</SelectItem>
+                        <SelectItem value="all">All statuses</SelectItem>
                         <SelectItem value="not_started">Not Started</SelectItem>
                         <SelectItem value="in_progress">In Progress</SelectItem>
                         <SelectItem value="review">In Review</SelectItem>
@@ -310,14 +310,14 @@ const Tasks = () => {
                   <div className="space-y-2">
                     <h4 className="font-medium">Priority</h4>
                     <Select
-                      value={priorityFilter || ""}
-                      onValueChange={(val) => setPriorityFilter(val === "" ? null : val)}
+                      value={priorityFilter}
+                      onValueChange={(val) => setPriorityFilter(val)}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="All priorities" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All priorities</SelectItem>
+                        <SelectItem value="all">All priorities</SelectItem>
                         <SelectItem value="critical">Critical</SelectItem>
                         <SelectItem value="high">High</SelectItem>
                         <SelectItem value="medium">Medium</SelectItem>
