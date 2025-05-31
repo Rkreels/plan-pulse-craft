@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -153,8 +152,7 @@ export const RoadmapManagement = () => {
           updateGoal({
             ...goal,
             title: editingItem.title,
-            description: editingItem.description,
-            updatedAt: new Date()
+            description: editingItem.description
           });
         }
       } else if (editingItem.type === "epic") {
@@ -163,8 +161,7 @@ export const RoadmapManagement = () => {
           updateEpic({
             ...epic,
             title: editingItem.title,
-            description: editingItem.description,
-            updatedAt: new Date()
+            description: editingItem.description
           });
         }
       } else if (editingItem.type === "release") {
@@ -173,8 +170,7 @@ export const RoadmapManagement = () => {
           updateRelease({
             ...release,
             name: editingItem.title,
-            description: editingItem.description,
-            updatedAt: new Date()
+            description: editingItem.description
           });
         }
       }
