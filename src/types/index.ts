@@ -1,4 +1,3 @@
-
 // User and Authentication Types
 export interface User {
   id: string;
@@ -93,6 +92,28 @@ export interface Feature {
   progress: number; // 0-100
   createdAt: Date;
   updatedAt: Date;
+  workspaceId: string;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description: string;
+  status: "not_started" | "in_progress" | "review" | "completed" | "blocked";
+  priority: "low" | "medium" | "high" | "critical";
+  assignedTo?: string[]; // User IDs
+  featureId?: string; // Optional link to feature
+  epicId?: string; // Optional link to epic
+  releaseId?: string; // Optional link to release
+  estimatedHours?: number;
+  actualHours?: number;
+  dueDate?: Date;
+  tags: string[];
+  dependencies?: string[]; // Task IDs that this task depends on
+  progress: number; // 0-100
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string; // User ID
   workspaceId: string;
 }
 

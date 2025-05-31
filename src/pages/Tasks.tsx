@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { AccessDenied } from "@/components/common/AccessDenied";
 import { useAppContext } from "@/contexts/AppContext";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
-import { Feature } from "@/types";
+import { Task } from "@/types";
 import { 
   CheckSquare, 
   CircleCheck, 
@@ -14,7 +14,10 @@ import {
   Filter, 
   ArrowUpDown,
   Plus,
-  SlidersHorizontal
+  Calendar,
+  Clock,
+  User,
+  Tag
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,32 +42,72 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useNavigate } from "react-router-dom";
+import { AddEditTaskDialog } from "@/components/dialogs/AddEditTaskDialog";
+import { TaskDetails } from "@/components/tasks/TaskDetails";
 import { toast } from "sonner";
 
 const Tasks = () => {
-  const navigate = useNavigate();
-  const { features, epics, updateFeature } = useAppContext();
+  const { features, epics, releases, currentUser } = useAppContext();
   const { hasRole } = useRoleAccess();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
+  const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null);
   const [sortField, setSortField] = useState<string>("priority");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showTaskDialog, setShowTaskDialog] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
+  const [showTaskDetails, setShowTaskDetails] = useState(false);
+  
+  // Mock tasks data - in a real app this would come from context/API
+  const [tasks, setTasks] = useState<Task[]>([
+    {
+      id: "task-1",
+      title: "Implement user authentication",
+      description: "Add login and registration functionality",
+      status: "in_progress",
+      priority: "high",
+      assignedTo: [currentUser?.id || ""],
+      featureId: features[0]?.id,
+      estimatedHours: 8,
+      actualHours: 5,
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      tags: ["frontend", "security"],
+      progress: 60,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdBy: currentUser?.id || "",
+      workspaceId: "workspace-1"
+    },
+    {
+      id: "task-2",
+      title: "Design database schema",
+      description: "Create database tables and relationships",
+      status: "completed",
+      priority: "medium",
+      assignedTo: [currentUser?.id || ""],
+      featureId: features[1]?.id,
+      estimatedHours: 4,
+      actualHours: 4,
+      dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      tags: ["backend", "database"],
+      progress: 100,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdBy: currentUser?.id || "",
+      workspaceId: "workspace-1"
+    }
+  ]);
   
   // Role-based access control
   if (!hasRole("developer")) {
     return <AccessDenied requiredRole="developer" />;
   }
-  
-  // Get dev tasks (in progress or review features)
-  const allTasks = features.filter(f => 
-    f.status === "in_progress" || f.status === "review"
-  );
 
   // Apply filters and sorting
   const filteredTasks = useMemo(() => {
-    return allTasks.filter(task => {
+    return tasks.filter(task => {
       // Search filter
       if (search && !task.title.toLowerCase().includes(search.toLowerCase()) && 
          !task.description.toLowerCase().includes(search.toLowerCase())) {
@@ -81,6 +124,11 @@ const Tasks = () => {
         return false;
       }
       
+      // Assignee filter
+      if (assigneeFilter && !task.assignedTo?.includes(assigneeFilter)) {
+        return false;
+      }
+      
       return true;
     }).sort((a, b) => {
       // Sort based on selected field
@@ -93,34 +141,131 @@ const Tasks = () => {
         return sortDirection === "asc" 
           ? a.title.localeCompare(b.title) 
           : b.title.localeCompare(a.title);
+      } else if (sortField === "dueDate") {
+        const aDate = a.dueDate ? new Date(a.dueDate).getTime() : 0;
+        const bDate = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+        return sortDirection === "asc" ? aDate - bDate : bDate - aDate;
       }
       
       return 0;
     });
-  }, [allTasks, search, statusFilter, priorityFilter, sortField, sortDirection]);
+  }, [tasks, search, statusFilter, priorityFilter, assigneeFilter, sortField, sortDirection]);
 
-  const handleUpdateStatus = (feature: Feature, newStatus: Feature["status"]) => {
-    updateFeature({
-      ...feature,
-      status: newStatus
-    });
+  const handleUpdateStatus = (task: Task, newStatus: Task["status"]) => {
+    const updatedTask = {
+      ...task,
+      status: newStatus,
+      updatedAt: new Date(),
+      progress: newStatus === "completed" ? 100 : newStatus === "in_progress" ? 50 : task.progress
+    };
     
-    toast.success(`Task "${feature.title}" updated to ${newStatus.replace('_', ' ')}`);
+    setTasks(prev => prev.map(t => t.id === task.id ? updatedTask : t));
+    toast.success(`Task "${task.title}" updated to ${newStatus.replace('_', ' ')}`);
   };
 
-  const handleCreateTask = () => {
-    navigate("/features?action=create&taskView=true");
+  const handleCreateTask = (taskData: Partial<Task>) => {
+    const newTask: Task = {
+      id: `task-${Date.now()}`,
+      title: taskData.title || "",
+      description: taskData.description || "",
+      status: taskData.status || "not_started",
+      priority: taskData.priority || "medium",
+      assignedTo: taskData.assignedTo || [],
+      featureId: taskData.featureId,
+      epicId: taskData.epicId,
+      releaseId: taskData.releaseId,
+      estimatedHours: taskData.estimatedHours,
+      actualHours: 0,
+      dueDate: taskData.dueDate,
+      tags: taskData.tags || [],
+      dependencies: taskData.dependencies || [],
+      progress: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdBy: currentUser?.id || "",
+      workspaceId: "workspace-1"
+    };
+    
+    setTasks(prev => [...prev, newTask]);
+    setShowTaskDialog(false);
+    toast.success("Task created successfully");
   };
 
-  const toggleSortDirection = () => {
-    setSortDirection(current => current === "asc" ? "desc" : "asc");
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setShowTaskDialog(true);
+  };
+
+  const handleUpdateTask = (taskData: Partial<Task>) => {
+    if (!editingTask) return;
+    
+    const updatedTask = {
+      ...editingTask,
+      ...taskData,
+      updatedAt: new Date()
+    };
+    
+    setTasks(prev => prev.map(t => t.id === editingTask.id ? updatedTask : t));
+    setShowTaskDialog(false);
+    setEditingTask(undefined);
+    toast.success("Task updated successfully");
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setTasks(prev => prev.filter(t => t.id !== taskId));
+    toast.success("Task deleted successfully");
+  };
+
+  const handleViewTask = (task: Task) => {
+    setSelectedTask(task);
+    setShowTaskDetails(true);
+  };
+
+  const getStatusIcon = (status: Task["status"]) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case "review":
+        return <CircleCheck className="h-5 w-5 text-amber-500" />;
+      case "in_progress":
+        return <Circle className="h-5 w-5 text-blue-500" />;
+      case "blocked":
+        return <Circle className="h-5 w-5 text-red-500" />;
+      default:
+        return <Circle className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
+  const getPriorityColor = (priority: Task["priority"]) => {
+    switch (priority) {
+      case "critical":
+        return "bg-red-500";
+      case "high":
+        return "bg-amber-500";
+      case "medium":
+        return "bg-blue-500";
+      default:
+        return "bg-slate-500";
+    }
+  };
+
+  const getRelatedFeature = (featureId?: string) => {
+    return features.find(f => f.id === featureId);
+  };
+
+  const getRelatedEpic = (epicId?: string) => {
+    return epics.find(e => e.id === epicId);
+  };
+
+  const getRelatedRelease = (releaseId?: string) => {
+    return releases.find(r => r.id === releaseId);
   };
 
   return (
     <>
       <PageTitle
         title="Development Tasks"
-        description="Track and manage development tasks"
+        description="Create, assign, and track development tasks"
       />
       
       <div className="flex flex-col gap-6">
@@ -153,8 +298,11 @@ const Tasks = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">All statuses</SelectItem>
+                        <SelectItem value="not_started">Not Started</SelectItem>
                         <SelectItem value="in_progress">In Progress</SelectItem>
                         <SelectItem value="review">In Review</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="blocked">Blocked</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -202,6 +350,7 @@ const Tasks = () => {
                       <SelectContent>
                         <SelectItem value="priority">Priority</SelectItem>
                         <SelectItem value="title">Name</SelectItem>
+                        <SelectItem value="dueDate">Due Date</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -228,7 +377,10 @@ const Tasks = () => {
           
           <Button 
             className="flex items-center gap-1 ml-auto" 
-            onClick={handleCreateTask}
+            onClick={() => {
+              setEditingTask(undefined);
+              setShowTaskDialog(true);
+            }}
           >
             <Plus className="h-4 w-4" />
             New Task
@@ -237,10 +389,10 @@ const Tasks = () => {
         
         {filteredTasks.length === 0 ? (
           <EmptyState 
-            title={search || statusFilter || priorityFilter ? "No Matching Tasks" : "No Active Tasks"} 
+            title={search || statusFilter || priorityFilter ? "No Matching Tasks" : "No Tasks"} 
             description={search || statusFilter || priorityFilter 
               ? "Try changing your search or filters."
-              : "There are no development tasks currently in progress or under review."
+              : "Create your first development task to get started."
             }
             icon={<CheckSquare className="h-10 w-10 text-muted-foreground" />}
           />
@@ -251,7 +403,7 @@ const Tasks = () => {
                 <div className="flex flex-wrap gap-6">
                   <div>
                     <span className="text-2xl font-bold">{filteredTasks.length}</span>
-                    <p className="text-sm text-muted-foreground">Tasks</p>
+                    <p className="text-sm text-muted-foreground">Total Tasks</p>
                   </div>
                   <div>
                     <span className="text-2xl font-bold">
@@ -261,9 +413,15 @@ const Tasks = () => {
                   </div>
                   <div>
                     <span className="text-2xl font-bold">
-                      {filteredTasks.filter(t => t.status === "review").length}
+                      {filteredTasks.filter(t => t.status === "completed").length}
                     </span>
-                    <p className="text-sm text-muted-foreground">In Review</p>
+                    <p className="text-sm text-muted-foreground">Completed</p>
+                  </div>
+                  <div>
+                    <span className="text-2xl font-bold">
+                      {filteredTasks.filter(t => t.status === "blocked").length}
+                    </span>
+                    <p className="text-sm text-muted-foreground">Blocked</p>
                   </div>
                 </div>
               </div>
@@ -276,55 +434,105 @@ const Tasks = () => {
                     <TableHead className="w-[50px]">Status</TableHead>
                     <TableHead>Task</TableHead>
                     <TableHead>Priority</TableHead>
-                    <TableHead>Epic</TableHead>
-                    <TableHead>Release</TableHead>
+                    <TableHead>Feature</TableHead>
+                    <TableHead>Due Date</TableHead>
+                    <TableHead>Progress</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredTasks.map(task => {
-                    const relatedEpic = epics.find(e => e.id === task.epicId);
+                    const relatedFeature = getRelatedFeature(task.featureId);
                     return (
-                      <TableRow key={task.id} className="cursor-pointer hover:bg-accent/50" onClick={() => navigate(`/features/${task.id}`)}>
+                      <TableRow 
+                        key={task.id} 
+                        className="cursor-pointer hover:bg-accent/50" 
+                        onClick={() => handleViewTask(task)}
+                      >
                         <TableCell>
-                          {task.status === "completed" ? (
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                          ) : task.status === "review" ? (
-                            <CircleCheck className="h-5 w-5 text-amber-500" />
-                          ) : (
-                            <Circle className="h-5 w-5 text-blue-500" />
-                          )}
+                          {getStatusIcon(task.status)}
                         </TableCell>
                         <TableCell>
                           <div className="font-medium">{task.title}</div>
                           <div className="text-sm text-muted-foreground line-clamp-1">{task.description}</div>
+                          {task.tags.length > 0 && (
+                            <div className="flex gap-1 mt-1">
+                              {task.tags.slice(0, 2).map(tag => (
+                                <Badge key={tag} variant="outline" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {task.tags.length > 2 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{task.tags.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell>
-                          <Badge className={
-                            task.priority === "critical" ? "bg-red-500" :
-                            task.priority === "high" ? "bg-amber-500" :
-                            task.priority === "medium" ? "bg-blue-500" :
-                            "bg-slate-500"
-                          }>
+                          <Badge className={getPriorityColor(task.priority)}>
                             {task.priority}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {relatedEpic ? relatedEpic.title : "-"}
+                          {relatedFeature ? (
+                            <div>
+                              <div className="font-medium text-sm">{relatedFeature.title}</div>
+                              <Badge variant="outline" className="text-xs">
+                                Feature
+                              </Badge>
+                            </div>
+                          ) : (
+                            "-"
+                          )}
                         </TableCell>
                         <TableCell>
-                          {task.releaseId ? `v${task.releaseId.replace('r', '')}` : "-"}
+                          {task.dueDate ? (
+                            <div className="flex items-center gap-1 text-sm">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(task.dueDate).toLocaleDateString()}
+                            </div>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-20 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-500 h-2 rounded-full" 
+                                style={{ width: `${task.progress}%` }}
+                              />
+                            </div>
+                            <span className="text-sm text-muted-foreground">{task.progress}%</span>
+                          </div>
                         </TableCell>
                         <TableCell 
                           className="text-right space-x-2"
                           onClick={(e) => e.stopPropagation()}
                         >
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditTask(task)}
+                          >
+                            Edit
+                          </Button>
+                          {task.status === "not_started" && (
+                            <Badge 
+                              className="bg-blue-500 cursor-pointer hover:bg-blue-600"
+                              onClick={() => handleUpdateStatus(task, "in_progress")}
+                            >
+                              Start
+                            </Badge>
+                          )}
                           {task.status === "in_progress" && (
                             <Badge 
                               className="bg-amber-500 cursor-pointer hover:bg-amber-600"
                               onClick={() => handleUpdateStatus(task, "review")}
                             >
-                              Move to Review
+                              Review
                             </Badge>
                           )}
                           {task.status === "review" && (
@@ -345,6 +553,29 @@ const Tasks = () => {
           </div>
         )}
       </div>
+
+      <AddEditTaskDialog
+        open={showTaskDialog}
+        onOpenChange={setShowTaskDialog}
+        task={editingTask}
+        onSave={editingTask ? handleUpdateTask : handleCreateTask}
+        features={features}
+        epics={epics}
+        releases={releases}
+      />
+
+      {selectedTask && (
+        <TaskDetails
+          open={showTaskDetails}
+          onOpenChange={setShowTaskDetails}
+          task={selectedTask}
+          onUpdate={handleUpdateTask}
+          onDelete={handleDeleteTask}
+          features={features}
+          epics={epics}
+          releases={releases}
+        />
+      )}
     </>
   );
 };

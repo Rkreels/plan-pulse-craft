@@ -1,5 +1,5 @@
 
-import { User, Workspace, Goal, Initiative, Release, Epic, Feature, Feedback, RoadmapView } from "@/types";
+import { User, Workspace, Goal, Initiative, Release, Epic, Feature, Feedback, RoadmapView, Task } from "@/types";
 
 // Context interfaces
 export interface AppContextType {
