@@ -11,7 +11,7 @@ import AppRoutes from "./AppRoutes";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <BrowserRouter>
+  <BrowserRouter basename="/project-roadmap">
     <TooltipProvider>
       <SidebarProvider>
         <QueryClientProvider client={queryClient}>
