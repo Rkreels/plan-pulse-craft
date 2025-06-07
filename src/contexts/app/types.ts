@@ -12,6 +12,7 @@ export interface AppContextType {
   features: Feature[];
   feedback: Feedback[];
   roadmapViews: RoadmapView[];
+  tasks: Task[];
   currentView: RoadmapView | null;
   isLoading: boolean;
   // Actions
@@ -32,6 +33,9 @@ export interface AppContextType {
   addFeedback: (feedback: Feedback) => void;
   updateFeedback: (feedback: Feedback) => void;
   deleteFeedback: (feedbackId: string) => void;
+  addTask: (task: Task) => void;
+  updateTask: (task: Task) => void;
+  deleteTask: (taskId: string) => void;
   switchRole: (role: User["role"]) => void;
   // Strategic Planning Actions
   addInitiative: (initiative: Initiative) => void;

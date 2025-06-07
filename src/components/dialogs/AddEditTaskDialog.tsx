@@ -19,6 +19,7 @@ import { CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { Task, Feature, Epic, Release } from "@/types";
 import { useAppContext } from "@/contexts/AppContext";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface AddEditTaskDialogProps {
   open: boolean;
@@ -29,6 +30,14 @@ interface AddEditTaskDialogProps {
   epics: Epic[];
   releases: Release[];
 }
+
+// Mock users - in real app this would come from context or API
+const mockUsers = [
+  { id: "u1", name: "John Doe", email: "john@example.com" },
+  { id: "u2", name: "Jane Smith", email: "jane@example.com" },
+  { id: "u3", name: "Bob Wilson", email: "bob@example.com" },
+  { id: "u4", name: "Alice Brown", email: "alice@example.com" },
+];
 
 export function AddEditTaskDialog({
   open,
@@ -55,6 +64,7 @@ export function AddEditTaskDialog({
   });
   const [newTag, setNewTag] = useState("");
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -108,6 +118,28 @@ export function AddEditTaskDialog({
       ...formData,
       tags: formData.tags?.filter(tag => tag !== tagToRemove) || []
     });
+  };
+
+  const handleToggleAssignee = (userId: string) => {
+    const currentAssignees = formData.assignedTo || [];
+    const isAssigned = currentAssignees.includes(userId);
+    
+    if (isAssigned) {
+      setFormData({
+        ...formData,
+        assignedTo: currentAssignees.filter(id => id !== userId)
+      });
+    } else {
+      setFormData({
+        ...formData,
+        assignedTo: [...currentAssignees, userId]
+      });
+    }
+  };
+
+  const getAssignedUserNames = () => {
+    const assignedUsers = mockUsers.filter(user => formData.assignedTo?.includes(user.id));
+    return assignedUsers.map(user => user.name).join(", ") || "No one assigned";
   };
 
   return (
@@ -178,6 +210,34 @@ export function AddEditTaskDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="assignees">Assigned To</Label>
+            <Popover open={showAssigneeDropdown} onOpenChange={setShowAssigneeDropdown}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  {getAssignedUserNames()}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="space-y-2">
+                  <h4 className="font-medium">Select Team Members</h4>
+                  {mockUsers.map((user) => (
+                    <div key={user.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={user.id}
+                        checked={formData.assignedTo?.includes(user.id) || false}
+                        onCheckedChange={() => handleToggleAssignee(user.id)}
+                      />
+                      <label htmlFor={user.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        {user.name} ({user.email})
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="grid grid-cols-1 gap-4">

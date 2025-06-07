@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { PageTitle } from "@/components/common/PageTitle";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -47,7 +46,7 @@ import { TaskDetails } from "@/components/tasks/TaskDetails";
 import { toast } from "sonner";
 
 const Tasks = () => {
-  const { features, epics, releases, currentUser } = useAppContext();
+  const { features, epics, releases, tasks, currentUser, addTask, updateTask, deleteTask } = useAppContext();
   const { hasRole } = useRoleAccess();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -59,46 +58,6 @@ const Tasks = () => {
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
   const [showTaskDetails, setShowTaskDetails] = useState(false);
-  
-  // Mock tasks data - in a real app this would come from context/API
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "task-1",
-      title: "Implement user authentication",
-      description: "Add login and registration functionality",
-      status: "in_progress",
-      priority: "high",
-      assignedTo: [currentUser?.id || ""],
-      featureId: features[0]?.id,
-      estimatedHours: 8,
-      actualHours: 5,
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      tags: ["frontend", "security"],
-      progress: 60,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy: currentUser?.id || "",
-      workspaceId: "workspace-1"
-    },
-    {
-      id: "task-2",
-      title: "Design database schema",
-      description: "Create database tables and relationships",
-      status: "completed",
-      priority: "medium",
-      assignedTo: [currentUser?.id || ""],
-      featureId: features[1]?.id,
-      estimatedHours: 4,
-      actualHours: 4,
-      dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      tags: ["backend", "database"],
-      progress: 100,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy: currentUser?.id || "",
-      workspaceId: "workspace-1"
-    }
-  ]);
   
   // Role-based access control
   if (!hasRole("developer")) {
@@ -159,7 +118,7 @@ const Tasks = () => {
       progress: newStatus === "completed" ? 100 : newStatus === "in_progress" ? 50 : task.progress
     };
     
-    setTasks(prev => prev.map(t => t.id === task.id ? updatedTask : t));
+    updateTask(updatedTask);
     toast.success(`Task "${task.title}" updated to ${newStatus.replace('_', ' ')}`);
   };
 
@@ -186,7 +145,7 @@ const Tasks = () => {
       workspaceId: "workspace-1"
     };
     
-    setTasks(prev => [...prev, newTask]);
+    addTask(newTask);
     setShowTaskDialog(false);
     toast.success("Task created successfully");
   };
@@ -205,14 +164,14 @@ const Tasks = () => {
       updatedAt: new Date()
     };
     
-    setTasks(prev => prev.map(t => t.id === editingTask.id ? updatedTask : t));
+    updateTask(updatedTask);
     setShowTaskDialog(false);
     setEditingTask(undefined);
     toast.success("Task updated successfully");
   };
 
   const handleDeleteTask = (taskId: string) => {
-    setTasks(prev => prev.filter(t => t.id !== taskId));
+    deleteTask(taskId);
     toast.success("Task deleted successfully");
   };
 

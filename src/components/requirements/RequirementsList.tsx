@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Search, MoreHorizontal, Filter } from "lucide-react";
 import { RequirementItem } from "@/components/requirements/RequirementItem";
+import { AddEditRequirementDialog } from "@/components/dialogs/AddEditRequirementDialog";
 import { toast } from "sonner";
 import { Requirement } from "@/types";
 
@@ -75,7 +76,7 @@ export const RequirementsList = () => {
       priority: "medium",
       status: "review",
       type: "non_functional",
-      featureId: null,
+      featureId: undefined,
       createdBy: "u2",
       createdAt: "2025-04-20T14:00:00Z",
       updatedAt: "2025-04-20T14:00:00Z",
@@ -110,7 +111,7 @@ export const RequirementsList = () => {
       priority: "medium",
       status: "draft",
       type: "technical",
-      featureId: null,
+      featureId: undefined,
       createdBy: "u3",
       createdAt: "2025-05-05T16:45:00Z",
       updatedAt: "2025-05-05T16:45:00Z",
@@ -124,9 +125,12 @@ export const RequirementsList = () => {
 
   const [selectedRequirements, setSelectedRequirements] = useState<string[]>([]);
   const [selectedRequirement, setSelectedRequirement] = useState<Requirement | null>(null);
+  const [showRequirementDialog, setShowRequirementDialog] = useState(false);
+  const [editingRequirement, setEditingRequirement] = useState<Requirement | undefined>(undefined);
 
   const handleCreateRequirement = () => {
-    toast.success("Create requirement dialog would open here");
+    setEditingRequirement(undefined);
+    setShowRequirementDialog(true);
   };
 
   const handleSelectRequirement = (requirement: Requirement) => {
@@ -141,14 +145,51 @@ export const RequirementsList = () => {
     setSelectedRequirements([]);
   };
 
-  const handleEditRequirement = (id: string) => {
-    toast.success(`Edit requirement ${id}`);
+  const handleEditRequirement = (requirement: Requirement) => {
+    setEditingRequirement(requirement);
+    setShowRequirementDialog(true);
+  };
+
+  const handleSaveRequirement = (requirementData: Partial<Requirement>) => {
+    if (editingRequirement) {
+      // Update existing requirement
+      const updatedRequirement = {
+        ...editingRequirement,
+        ...requirementData,
+        updatedAt: new Date().toISOString(),
+        version: (editingRequirement.version || 1) + 1
+      };
+      setRequirements(prev => prev.map(req => 
+        req.id === editingRequirement.id ? updatedRequirement : req
+      ));
+      toast.success("Requirement updated successfully");
+    } else {
+      // Create new requirement
+      const newRequirement: Requirement = {
+        id: `req-${Date.now()}`,
+        title: requirementData.title || "",
+        description: requirementData.description || "",
+        priority: requirementData.priority || "medium",
+        status: requirementData.status || "draft",
+        type: requirementData.type || "functional",
+        featureId: requirementData.featureId,
+        createdBy: requirementData.createdBy || "current-user",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        version: 1,
+        acceptanceCriteria: requirementData.acceptanceCriteria || []
+      };
+      setRequirements(prev => [...prev, newRequirement]);
+      toast.success("Requirement created successfully");
+    }
+    setShowRequirementDialog(false);
+    setEditingRequirement(undefined);
   };
 
   const handleDeleteRequirement = (id: string) => {
     setRequirements(requirements.filter(req => req.id !== id));
     setSelectedRequirement(null);
-    toast.success(`Requirement deleted`);
+    toast.success("Requirement deleted");
   };
 
   const handleToggleSelect = (id: string) => {
@@ -278,7 +319,7 @@ export const RequirementsList = () => {
                           <DropdownMenuItem onClick={() => handleSelectRequirement(requirement)}>
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEditRequirement(requirement.id)}>
+                          <DropdownMenuItem onClick={() => handleEditRequirement(requirement)}>
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem 
@@ -302,10 +343,17 @@ export const RequirementsList = () => {
         <RequirementItem 
           requirement={selectedRequirement} 
           onClose={() => setSelectedRequirement(null)}
-          onEdit={handleEditRequirement}
+          onEdit={() => handleEditRequirement(selectedRequirement)}
           onDelete={handleDeleteRequirement}
         />
       )}
+
+      <AddEditRequirementDialog
+        open={showRequirementDialog}
+        onOpenChange={setShowRequirementDialog}
+        requirement={editingRequirement}
+        onSave={handleSaveRequirement}
+      />
     </div>
   );
 };
