@@ -28,7 +28,7 @@ export function TopNav() {
   
   const handleLogout = () => {
     setCurrentUser(null);
-    navigate("/login");
+    navigate("/project-roadmap/login");
   };
 
   // Get initials for avatar fallback
@@ -93,10 +93,10 @@ export function TopNav() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/settings")}>
+              <DropdownMenuItem onClick={() => navigate("/project-roadmap/settings")}>
                 <User className="mr-2 h-4 w-4" /> Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/settings")}>Settings</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/project-roadmap/settings")}>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" /> Log out

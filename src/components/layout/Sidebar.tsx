@@ -24,24 +24,12 @@ export function Sidebar() {
 
   const isActive = (path: string) => {
     // Exact match for home page
-    if (path === '/') {
-      return location.pathname === '/';
+    if (path === '/project-roadmap' || path === '/project-roadmap/') {
+      return location.pathname === '/' || location.pathname === '/project-roadmap' || location.pathname === '/project-roadmap/';
     }
     
     // For other paths, check if current path starts with the menu path
-    // This handles nested routes properly
-    const currentPath = location.pathname;
-    
-    // Handle special cases for better UX
-    if (path === '/features' && currentPath.startsWith('/ideas')) {
-      return false; // Ideas should not highlight Features
-    }
-    
-    if (path === '/ideas' && currentPath.startsWith('/features')) {
-      return false; // Features should not highlight Ideas
-    }
-    
-    return currentPath.startsWith(path);
+    return location.pathname.startsWith(path);
   };
 
   // Filter menu items based on user role with fallback
@@ -61,7 +49,7 @@ export function Sidebar() {
     <UISidebar>
       <SidebarContent>
         <div className="flex items-center justify-center py-4 border-b">
-          <h1 className="text-xl font-bold text-primary cursor-pointer" onClick={() => handleNavigation('/')}>
+          <h1 className="text-xl font-bold text-primary cursor-pointer" onClick={() => handleNavigation('/project-roadmap')}>
             PlanPulseCraft
           </h1>
         </div>
@@ -86,7 +74,7 @@ export function Sidebar() {
           <SidebarItems 
             items={[{
               title: "Settings",
-              path: "/settings",
+              path: "/project-roadmap/settings",
               icon: Settings,
               roles: ["admin", "product_manager", "executive", "developer", "customer"]
             }]} 

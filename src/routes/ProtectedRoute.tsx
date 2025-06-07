@@ -14,7 +14,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (!currentUser) {
     // Redirect to login if not authenticated, saving the current location
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/project-roadmap/login" state={{ from: location }} replace />;
   }
 
   return <MainLayout>{children}</MainLayout>;
