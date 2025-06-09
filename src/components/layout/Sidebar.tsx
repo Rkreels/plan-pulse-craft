@@ -24,8 +24,8 @@ export function Sidebar() {
 
   const isActive = (path: string) => {
     // Exact match for home page
-    if (path === '/project-roadmap' || path === '/project-roadmap/') {
-      return location.pathname === '/' || location.pathname === '/project-roadmap' || location.pathname === '/project-roadmap/';
+    if (path === '/') {
+      return location.pathname === '/';
     }
     
     // For other paths, check if current path starts with the menu path
@@ -49,7 +49,7 @@ export function Sidebar() {
     <UISidebar>
       <SidebarContent>
         <div className="flex items-center justify-center py-4 border-b">
-          <h1 className="text-xl font-bold text-primary cursor-pointer" onClick={() => handleNavigation('/project-roadmap')}>
+          <h1 className="text-xl font-bold text-primary cursor-pointer" onClick={() => handleNavigation('/')}>
             PlanPulseCraft
           </h1>
         </div>
@@ -74,7 +74,7 @@ export function Sidebar() {
           <SidebarItems 
             items={[{
               title: "Settings",
-              path: "/project-roadmap/settings",
+              path: "/settings",
               icon: Settings,
               roles: ["admin", "product_manager", "executive", "developer", "customer"]
             }]} 

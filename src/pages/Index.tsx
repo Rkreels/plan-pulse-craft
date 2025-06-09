@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { PageTitle } from "@/components/common/PageTitle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -104,11 +103,11 @@ const Index = () => {
           description="Here's what's happening in your product roadmap"
         />
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate("/project-roadmap/features")}>
+          <Button variant="outline" onClick={() => navigate("/features")}>
             <Plus className="h-4 w-4 mr-2" />
             Add Feature
           </Button>
-          <Button onClick={() => navigate("/project-roadmap/roadmap")}>
+          <Button onClick={() => navigate("/roadmap")}>
             View Roadmap
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
@@ -199,7 +198,7 @@ const Index = () => {
                     variant="outline" 
                     size="sm" 
                     className="ml-auto"
-                    onClick={() => navigate("/project-roadmap/tasks")}
+                    onClick={() => navigate("/tasks")}
                   >
                     View Tasks
                   </Button>
@@ -223,7 +222,7 @@ const Index = () => {
                     variant="outline" 
                     size="sm" 
                     className="ml-auto"
-                    onClick={() => navigate("/project-roadmap/releases")}
+                    onClick={() => navigate("/releases")}
                   >
                     View Releases
                   </Button>
@@ -324,7 +323,7 @@ const Index = () => {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => navigate(`/project-roadmap/features/${feature.id}`)}
+                      onClick={() => navigate(`/features/${feature.id}`)}
                     >
                       <ArrowRight className="h-4 w-4" />
                     </Button>

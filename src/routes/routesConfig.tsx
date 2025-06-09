@@ -34,9 +34,8 @@ export const generateRoutes = (): RouteConfig[] => {
   return [
     // Public routes
     { path: "/project-roadmap/login", element: <Login />, protected: false },
-    { path: "*", element: <NotFound />, protected: false },
     
-    // Protected routes
+    // Protected routes - handle both root and /project-roadmap paths
     { path: "/", element: <Index />, protected: true },
     { path: "/project-roadmap", element: <Index />, protected: true },
     { path: "/project-roadmap/", element: <Index />, protected: true },
@@ -63,5 +62,8 @@ export const generateRoutes = (): RouteConfig[] => {
     { path: "/project-roadmap/reports", element: <Reports />, protected: true },
     { path: "/project-roadmap/competitor-analysis", element: <CompetitorAnalysis />, protected: true },
     { path: "/project-roadmap/customer-portal", element: <CustomerPortal />, protected: true },
+    
+    // Catch all - must be last
+    { path: "*", element: <NotFound />, protected: false },
   ];
 };

@@ -36,55 +36,55 @@ export interface NavigationItem {
 export const getNavigationItems = (): NavigationItem[] => [
   {
     title: "Dashboard",
-    path: "/project-roadmap",
+    path: "/",
     icon: Home,
     roles: ["admin", "product_manager", "executive", "developer", "customer"]
   },
   {
     title: "Ideas",
-    path: "/project-roadmap/ideas",
+    path: "/ideas",
     icon: Lightbulb,
     roles: ["admin", "product_manager", "executive", "developer", "customer"]
   },
   {
     title: "Features",
-    path: "/project-roadmap/features",
+    path: "/features",
     icon: Zap,
     roles: ["admin", "product_manager", "executive", "developer"]
   },
   {
     title: "Roadmap",
-    path: "/project-roadmap/roadmap",
+    path: "/roadmap",
     icon: GitBranch,
     roles: ["admin", "product_manager", "executive"]
   },
   {
     title: "Releases",
-    path: "/project-roadmap/releases",
+    path: "/releases",
     icon: Calendar,
     roles: ["admin", "product_manager", "executive", "developer"]
   },
   {
     title: "Goals",
-    path: "/project-roadmap/goals",
+    path: "/goals",
     icon: Target,
     roles: ["admin", "product_manager", "executive"]
   },
   {
     title: "Strategy",
-    path: "/project-roadmap/strategy",
+    path: "/strategy",
     icon: Briefcase,
     roles: ["admin", "product_manager", "executive"]
   },
   {
     title: "Requirements",
-    path: "/project-roadmap/requirements",
+    path: "/requirements",
     icon: CheckSquare,
     roles: ["admin", "product_manager", "developer"]
   },
   {
     title: "Tasks",
-    path: "/project-roadmap/tasks",
+    path: "/tasks",
     icon: CheckSquare,
     roles: ["admin", "product_manager", "developer"]
   }
@@ -93,67 +93,67 @@ export const getNavigationItems = (): NavigationItem[] => [
 export const getWorkspaceItems = (): NavigationItem[] => [
   {
     title: "Analytics",
-    path: "/project-roadmap/analytics",
+    path: "/analytics",
     icon: TrendingUp,
     roles: ["admin", "product_manager", "executive"]
   },
   {
     title: "Reports",
-    path: "/project-roadmap/reports", 
+    path: "/reports", 
     icon: FileText,
     roles: ["admin", "product_manager", "executive"]
   },
   {
     title: "Dashboards",
-    path: "/project-roadmap/dashboards",
+    path: "/dashboards",
     icon: PieChart,
     roles: ["admin", "product_manager", "executive"]
   },
   {
     title: "Capacity Planning",
-    path: "/project-roadmap/capacity-planning",
+    path: "/capacity-planning",
     icon: Activity,
     roles: ["admin", "product_manager", "executive"]
   },
   {
     title: "Team",
-    path: "/project-roadmap/team",
+    path: "/team",
     icon: Users,
     roles: ["admin", "product_manager"]
   },
   {
     title: "Feedback",
-    path: "/project-roadmap/feedback",
+    path: "/feedback",
     icon: MessageSquare,
     roles: ["admin", "product_manager", "executive", "customer"]
   },
   {
     title: "Customer Portal",
-    path: "/project-roadmap/customer-portal",
+    path: "/customer-portal",
     icon: Globe,
     roles: ["admin", "product_manager", "customer"]
   },
   {
     title: "Competitor Analysis",
-    path: "/project-roadmap/competitor-analysis",
+    path: "/competitor-analysis",
     icon: Building,
     roles: ["admin", "product_manager", "executive"]
   },
   {
     title: "Integrations",
-    path: "/project-roadmap/integrations",
+    path: "/integrations",
     icon: Database,
     roles: ["admin", "product_manager"]
   },
   {
     title: "Permissions",
-    path: "/project-roadmap/permissions",
+    path: "/permissions",
     icon: Shield,
     roles: ["admin"]
   },
   {
     title: "Documentation",
-    path: "/project-roadmap/documentation",
+    path: "/documentation",
     icon: FileText,
     roles: ["admin", "product_manager", "developer"]
   }
