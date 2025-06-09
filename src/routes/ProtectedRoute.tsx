@@ -19,4 +19,3 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   return <MainLayout>{children}</MainLayout>;
 };
-</rov-write>
