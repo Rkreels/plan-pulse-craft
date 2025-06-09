@@ -35,8 +35,9 @@ export const generateRoutes = (): RouteConfig[] => {
     // Public routes
     { path: "/login", element: <Login />, protected: false },
     
-    // Protected routes - using clean paths since basename handles the prefix
+    // Protected routes - clean paths from root
     { path: "/", element: <Index />, protected: true },
+    { path: "/home", element: <Index />, protected: true },
     { path: "/features", element: <Features />, protected: true },
     { path: "/features/:id", element: <Features />, protected: true },
     { path: "/feedback", element: <Feedback />, protected: true },
