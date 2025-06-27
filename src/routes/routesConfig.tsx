@@ -37,7 +37,6 @@ export const generateRoutes = (): RouteConfig[] => {
     
     // Protected routes - clean paths from root
     { path: "/", element: <Index />, protected: true },
-    { path: "/home", element: <Index />, protected: true },
     { path: "/features", element: <Features />, protected: true },
     { path: "/features/:id", element: <Features />, protected: true },
     { path: "/feedback", element: <Feedback />, protected: true },

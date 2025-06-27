@@ -41,12 +41,15 @@ export const TaskFilters = ({
   return (
     <div className="flex flex-col lg:flex-row gap-4 justify-between items-start">
       <div className="flex flex-wrap gap-3">
-        <Input
-          placeholder="Search tasks..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full sm:w-64"
-        />
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search tasks..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full sm:w-64 pl-8"
+          />
+        </div>
         
         <Popover>
           <PopoverTrigger asChild>
