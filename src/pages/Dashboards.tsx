@@ -1,17 +1,18 @@
 
+import React from "react";
 import { PageTitle } from "@/components/common/PageTitle";
 import { DashboardsList } from "@/components/dashboards/DashboardsList";
 
 const Dashboards = () => {
   return (
-    <>
-      <PageTitle
-        title="Custom Dashboards"
-        description="Create and view customized dashboards with metrics that matter to you"
+    <div className="space-y-6">
+      <PageTitle 
+        title="Dashboards" 
+        description="Create and manage custom dashboards for data visualization"
       />
       
       <DashboardsList />
-    </>
+    </div>
   );
 };
 

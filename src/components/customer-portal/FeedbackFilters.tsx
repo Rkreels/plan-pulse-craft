@@ -1,58 +1,45 @@
 
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Search, Filter, X } from "lucide-react";
-import { format } from "date-fns";
-
-interface FilterState {
-  search: string;
-  category: string;
-  status: string;
-  dateRange: { from?: Date; to?: Date };
-  minVotes: string;
-  sortBy: string;
-  sortOrder: "asc" | "desc";
-}
+import { X, Search } from "lucide-react";
 
 interface FeedbackFiltersProps {
-  filters: FilterState;
-  onFiltersChange: (filters: FilterState) => void;
+  filters: {
+    search: string;
+    category: string;
+    status: string;
+    dateRange: any;
+    minVotes: string;
+    sortBy: string;
+    sortOrder: "asc" | "desc";
+  };
+  onFiltersChange: (filters: any) => void;
   onClearFilters: () => void;
 }
 
-export function FeedbackFilters({ filters, onFiltersChange, onClearFilters }: FeedbackFiltersProps) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
-
-  const updateFilter = (key: keyof FilterState, value: any) => {
-    onFiltersChange({ ...filters, [key]: value });
-  };
-
-  const activeFiltersCount = Object.values(filters).filter(value => 
-    value && value !== "" && (typeof value !== "object" || Object.keys(value).length > 0)
-  ).length - 2; // Exclude sortBy and sortOrder from count
+export const FeedbackFilters = ({ filters, onFiltersChange, onClearFilters }: FeedbackFiltersProps) => {
+  const hasActiveFilters = filters.search || filters.category !== "all" || filters.status !== "all" || filters.minVotes;
 
   return (
-    <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
-      <div className="flex flex-wrap gap-4 items-center">
-        <div className="flex-1 min-w-64">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search feedback..."
-              value={filters.search}
-              onChange={(e) => updateFilter("search", e.target.value)}
-              className="pl-10"
-            />
-          </div>
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-3">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search feedback..."
+            value={filters.search}
+            onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
+            className="w-full sm:w-64 pl-8"
+          />
         </div>
-        
-        <Select value={filters.category} onValueChange={(value) => updateFilter("category", value)}>
-          <SelectTrigger className="w-48">
+
+        <Select
+          value={filters.category}
+          onValueChange={(value) => onFiltersChange({ ...filters, category: value })}
+        >
+          <SelectTrigger className="w-40">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
@@ -61,15 +48,19 @@ export function FeedbackFilters({ filters, onFiltersChange, onClearFilters }: Fe
             <SelectItem value="Bug Report">Bug Report</SelectItem>
             <SelectItem value="Improvement">Improvement</SelectItem>
             <SelectItem value="Question">Question</SelectItem>
+            <SelectItem value="Other">Other</SelectItem>
           </SelectContent>
         </Select>
 
-        <Select value={filters.status} onValueChange={(value) => updateFilter("status", value)}>
-          <SelectTrigger className="w-48">
+        <Select
+          value={filters.status}
+          onValueChange={(value) => onFiltersChange({ ...filters, status: value })}
+        >
+          <SelectTrigger className="w-40">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="New">New</SelectItem>
             <SelectItem value="Under Review">Under Review</SelectItem>
             <SelectItem value="In Progress">In Progress</SelectItem>
@@ -78,67 +69,103 @@ export function FeedbackFilters({ filters, onFiltersChange, onClearFilters }: Fe
           </SelectContent>
         </Select>
 
-        <Button 
-          variant="outline" 
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="gap-2"
-        >
-          <Filter className="h-4 w-4" />
-          Advanced
-          {activeFiltersCount > 0 && (
-            <Badge variant="secondary" className="ml-1">{activeFiltersCount}</Badge>
-          )}
-        </Button>
+        <Input
+          placeholder="Min votes"
+          type="number"
+          value={filters.minVotes}
+          onChange={(e) => onFiltersChange({ ...filters, minVotes: e.target.value })}
+          className="w-28"
+        />
 
-        {activeFiltersCount > 0 && (
-          <Button variant="ghost" onClick={onClearFilters} className="gap-2">
-            <X className="h-4 w-4" />
-            Clear
-          </Button>
-        )}
+        <Select
+          value={filters.sortBy}
+          onValueChange={(value) => onFiltersChange({ ...filters, sortBy: value })}
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="votes">Votes</SelectItem>
+            <SelectItem value="date">Date</SelectItem>
+            <SelectItem value="title">Title</SelectItem>
+            <SelectItem value="status">Status</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={filters.sortOrder}
+          onValueChange={(value: "asc" | "desc") => onFiltersChange({ ...filters, sortOrder: value })}
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue placeholder="Order" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="desc">Descending</SelectItem>
+            <SelectItem value="asc">Ascending</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {showAdvanced && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Sort by</label>
-            <Select value={filters.sortBy} onValueChange={(value) => updateFilter("sortBy", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="votes">Votes</SelectItem>
-                <SelectItem value="date">Date</SelectItem>
-                <SelectItem value="title">Title</SelectItem>
-                <SelectItem value="status">Status</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Order</label>
-            <Select value={filters.sortOrder} onValueChange={(value) => updateFilter("sortOrder", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Order" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="desc">Descending</SelectItem>
-                <SelectItem value="asc">Ascending</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Min. Votes</label>
-            <Input
-              type="number"
-              placeholder="0"
-              value={filters.minVotes}
-              onChange={(e) => updateFilter("minVotes", e.target.value)}
-            />
-          </div>
+      {hasActiveFilters && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Active filters:</span>
+          {filters.search && (
+            <Badge variant="secondary" className="gap-1">
+              Search: {filters.search}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0"
+                onClick={() => onFiltersChange({ ...filters, search: "" })}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+          {filters.category !== "all" && (
+            <Badge variant="secondary" className="gap-1">
+              Category: {filters.category}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0"
+                onClick={() => onFiltersChange({ ...filters, category: "all" })}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+          {filters.status !== "all" && (
+            <Badge variant="secondary" className="gap-1">
+              Status: {filters.status}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0"
+                onClick={() => onFiltersChange({ ...filters, status: "all" })}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+          {filters.minVotes && (
+            <Badge variant="secondary" className="gap-1">
+              Min votes: {filters.minVotes}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0"
+                onClick={() => onFiltersChange({ ...filters, minVotes: "" })}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+          <Button variant="outline" size="sm" onClick={onClearFilters}>
+            Clear All
+          </Button>
         </div>
       )}
     </div>
   );
-}
+};

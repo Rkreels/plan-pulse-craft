@@ -1,216 +1,142 @@
 
 import { useState } from "react";
-import { useAppContext } from "@/contexts/AppContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line
-} from 'recharts';
-import { 
-  Users, 
-  Clock, 
-  Target, 
-  AlertTriangle,
-  TrendingUp,
-  Calendar,
-  RefreshCw
-} from "lucide-react";
+import { Users, Clock, TrendingUp, AlertTriangle } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts";
 
 export const CapacityDashboard = () => {
-  const { features, releases } = useAppContext();
-  const [timeRange, setTimeRange] = useState("current_quarter");
-  const [viewType, setViewType] = useState("team");
+  const [timeRange, setTimeRange] = useState("current");
 
-  // Mock team data - in real app, this would come from API
-  const teams = [
-    { id: "frontend", name: "Frontend Team", members: 5, capacity: 40, allocated: 32, utilization: 80 },
-    { id: "backend", name: "Backend Team", members: 4, capacity: 32, allocated: 28, utilization: 88 },
-    { id: "design", name: "Design Team", members: 3, capacity: 24, allocated: 20, utilization: 83 },
-    { id: "qa", name: "QA Team", members: 3, capacity: 24, allocated: 18, utilization: 75 }
+  const teamCapacity = [
+    { name: "Frontend", allocated: 85, available: 100, utilization: 85 },
+    { name: "Backend", allocated: 92, available: 100, utilization: 92 },
+    { name: "Design", allocated: 70, available: 80, utilization: 87.5 },
+    { name: "QA", allocated: 65, available: 80, utilization: 81.25 },
+    { name: "DevOps", allocated: 40, available: 60, utilization: 66.67 }
   ];
 
-  const capacityData = teams.map(team => ({
-    name: team.name,
-    capacity: team.capacity,
-    allocated: team.allocated,
-    available: team.capacity - team.allocated,
-    utilization: team.utilization
-  }));
-
-  const utilizationData = [
-    { week: 'Week 1', frontend: 75, backend: 85, design: 90, qa: 70 },
-    { week: 'Week 2', frontend: 80, backend: 90, design: 85, qa: 75 },
-    { week: 'Week 3', frontend: 85, backend: 88, design: 80, qa: 80 },
-    { week: 'Week 4', frontend: 78, backend: 92, design: 88, qa: 72 }
+  const sprintData = [
+    { sprint: "Sprint 1", planned: 40, completed: 38, capacity: 45 },
+    { sprint: "Sprint 2", planned: 42, completed: 40, capacity: 45 },
+    { sprint: "Sprint 3", planned: 45, completed: 42, capacity: 45 },
+    { sprint: "Sprint 4", planned: 48, completed: 45, capacity: 50 },
+    { sprint: "Sprint 5", planned: 50, completed: 47, capacity: 50 },
+    { sprint: "Sprint 6", planned: 52, completed: 50, capacity: 55 }
   ];
 
-  const totalCapacity = teams.reduce((sum, team) => sum + team.capacity, 0);
-  const totalAllocated = teams.reduce((sum, team) => sum + team.allocated, 0);
-  const totalAvailable = totalCapacity - totalAllocated;
-  const overallUtilization = Math.round((totalAllocated / totalCapacity) * 100);
+  const utilizationTrend = [
+    { week: "W1", frontend: 80, backend: 85, design: 75, qa: 70 },
+    { week: "W2", frontend: 85, backend: 90, design: 80, qa: 75 },
+    { week: "W3", frontend: 88, backend: 95, design: 85, qa: 80 },
+    { week: "W4", frontend: 85, backend: 92, design: 88, qa: 85 }
+  ];
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+  const getUtilizationColor = (utilization: number) => {
+    if (utilization >= 90) return "text-red-600";
+    if (utilization >= 80) return "text-yellow-600";
+    return "text-green-600";
+  };
+
+  const getProgressColor = (utilization: number) => {
+    if (utilization >= 90) return "bg-red-500";
+    if (utilization >= 80) return "bg-yellow-500";
+    return "bg-green-500";
+  };
 
   return (
     <div className="space-y-6">
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between">
-        <div className="flex flex-wrap gap-2">
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Time range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="current_week">Current Week</SelectItem>
-              <SelectItem value="current_month">Current Month</SelectItem>
-              <SelectItem value="current_quarter">Current Quarter</SelectItem>
-              <SelectItem value="next_quarter">Next Quarter</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={viewType} onValueChange={setViewType}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="View type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="team">By Team</SelectItem>
-              <SelectItem value="project">By Project</SelectItem>
-              <SelectItem value="skill">By Skill</SelectItem>
-              <SelectItem value="individual">By Individual</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Capacity Planning</h2>
+          <p className="text-muted-foreground">Monitor team capacity and resource allocation</p>
         </div>
-        
-        <Button variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh Data
-        </Button>
+        <Select value={timeRange} onValueChange={setTimeRange}>
+          <SelectTrigger className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="current">Current Sprint</SelectItem>
+            <SelectItem value="next">Next Sprint</SelectItem>
+            <SelectItem value="quarter">This Quarter</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Capacity</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalCapacity}h</div>
-            <p className="text-xs text-muted-foreground">
-              <Calendar className="inline h-3 w-3 mr-1" />
-              Current quarter
-            </p>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-500" />
+              <span className="font-medium">Total Capacity</span>
+            </div>
+            <div className="text-2xl font-bold mt-2">375h</div>
+            <div className="text-sm text-muted-foreground">This sprint</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Allocated</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalAllocated}h</div>
-            <Progress value={(totalAllocated / totalCapacity) * 100} className="mt-2" />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-green-500" />
+              <span className="font-medium">Allocated</span>
+            </div>
+            <div className="text-2xl font-bold mt-2">352h</div>
+            <div className="text-sm text-green-600">94% utilization</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalAvailable}h</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingUp className="inline h-3 w-3 mr-1 text-green-500" />
-              Ready for allocation
-            </p>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-purple-500" />
+              <span className="font-medium">Velocity</span>
+            </div>
+            <div className="text-2xl font-bold mt-2">47</div>
+            <div className="text-sm text-green-600">+6% from last sprint</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Utilization</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{overallUtilization}%</div>
-            <p className="text-xs text-muted-foreground">
-              {overallUtilization > 85 ? (
-                <AlertTriangle className="inline h-3 w-3 mr-1 text-red-500" />
-              ) : (
-                <TrendingUp className="inline h-3 w-3 mr-1 text-green-500" />
-              )}
-              {overallUtilization > 85 ? 'Over capacity' : 'Healthy'}
-            </p>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              <span className="font-medium">At Risk</span>
+            </div>
+            <div className="text-2xl font-bold mt-2">2</div>
+            <div className="text-sm text-orange-600">Teams over capacity</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Capacity Overview Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Capacity Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={capacityData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="capacity" fill="#8884d8" name="Total Capacity" />
-              <Bar dataKey="allocated" fill="#82ca9d" name="Allocated" />
-              <Bar dataKey="available" fill="#ffc658" name="Available" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Team Details and Utilization Trend */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Team Details</CardTitle>
+            <CardTitle>Team Capacity Overview</CardTitle>
+            <CardDescription>Current allocation vs available capacity</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {teams.map(team => (
-                <div key={team.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="font-medium">{team.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {team.members} members • {team.capacity}h capacity
-                    </div>
-                    <Progress value={team.utilization} className="mt-2" />
-                  </div>
-                  <div className="text-right">
-                    <Badge 
-                      variant={team.utilization > 85 ? "destructive" : "default"}
-                      className="mb-1"
-                    >
-                      {team.utilization}%
-                    </Badge>
-                    <div className="text-xs text-muted-foreground">
-                      {team.allocated}h / {team.capacity}h
+              {teamCapacity.map(team => (
+                <div key={team.name} className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">{team.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-medium ${getUtilizationColor(team.utilization)}`}>
+                        {team.utilization.toFixed(0)}%
+                      </span>
+                      <Badge variant={team.utilization >= 90 ? "destructive" : team.utilization >= 80 ? "secondary" : "default"}>
+                        {team.allocated}h / {team.available}h
+                      </Badge>
                     </div>
                   </div>
+                  <Progress 
+                    value={team.utilization} 
+                    className="h-2"
+                  />
                 </div>
               ))}
             </div>
@@ -219,22 +145,90 @@ export const CapacityDashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Utilization Trend</CardTitle>
+            <CardTitle>Sprint Performance</CardTitle>
+            <CardDescription>Planned vs completed story points</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={utilizationData}>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={sprintData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="sprint" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="capacity" fill="#e5e7eb" name="Capacity" />
+                <Bar dataKey="planned" fill="#8884d8" name="Planned" />
+                <Bar dataKey="completed" fill="#82ca9d" name="Completed" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Utilization Trends</CardTitle>
+            <CardDescription>Team utilization over the last 4 weeks</CardDescription>
+          </CardHeader>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={utilizationTrend}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="week" />
                 <YAxis />
                 <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="frontend" stroke="#8884d8" name="Frontend" />
-                <Line type="monotone" dataKey="backend" stroke="#82ca9d" name="Backend" />
-                <Line type="monotone" dataKey="design" stroke="#ffc658" name="Design" />
-                <Line type="monotone" dataKey="qa" stroke="#ff7300" name="QA" />
+                <Line type="monotone" dataKey="frontend" stroke="#8884d8" strokeWidth={2} name="Frontend" />
+                <Line type="monotone" dataKey="backend" stroke="#82ca9d" strokeWidth={2} name="Backend" />
+                <Line type="monotone" dataKey="design" stroke="#ffc658" strokeWidth={2} name="Design" />
+                <Line type="monotone" dataKey="qa" stroke="#ff7300" strokeWidth={2} name="QA" />
               </LineChart>
             </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Capacity Alerts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg">
+                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+                <div>
+                  <p className="font-medium text-red-900">Backend Team Over Capacity</p>
+                  <p className="text-sm text-red-700">Currently at 92% utilization. Consider redistributing work.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                <div>
+                  <p className="font-medium text-yellow-900">Design Team Approaching Limit</p>
+                  <p className="text-sm text-yellow-700">At 87% utilization. Monitor for next sprint planning.</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Button className="w-full justify-start" variant="outline">
+                Plan Next Sprint
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                Rebalance Workload
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                Add Team Member
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                Export Capacity Report
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
