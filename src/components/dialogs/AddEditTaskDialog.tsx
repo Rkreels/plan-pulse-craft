@@ -3,23 +3,12 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, X } from "lucide-react";
-import { format } from "date-fns";
+import { X } from "lucide-react";
 import { Task, Feature, Epic, Release } from "@/types";
-import { useAppContext } from "@/contexts/AppContext";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface AddEditTaskDialogProps {
   open: boolean;
@@ -31,15 +20,7 @@ interface AddEditTaskDialogProps {
   releases: Release[];
 }
 
-// Mock users - in real app this would come from context or API
-const mockUsers = [
-  { id: "u1", name: "John Doe", email: "john@example.com" },
-  { id: "u2", name: "Jane Smith", email: "jane@example.com" },
-  { id: "u3", name: "Bob Wilson", email: "bob@example.com" },
-  { id: "u4", name: "Alice Brown", email: "alice@example.com" },
-];
-
-export function AddEditTaskDialog({
+export const AddEditTaskDialog = ({
   open,
   onOpenChange,
   task,
@@ -47,28 +28,38 @@ export function AddEditTaskDialog({
   features,
   epics,
   releases
-}: AddEditTaskDialogProps) {
-  const { currentUser } = useAppContext();
+}: AddEditTaskDialogProps) => {
   const [formData, setFormData] = useState<Partial<Task>>({
     title: "",
     description: "",
     status: "not_started",
     priority: "medium",
     assignedTo: [],
+    tags: [],
+    estimatedHours: 0,
+    dueDate: undefined,
     featureId: undefined,
     epicId: undefined,
-    releaseId: undefined,
-    estimatedHours: undefined,
-    dueDate: undefined,
-    tags: []
+    releaseId: undefined
   });
+
   const [newTag, setNewTag] = useState("");
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
 
   useEffect(() => {
     if (task) {
-      setFormData(task);
+      setFormData({
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        priority: task.priority,
+        assignedTo: task.assignedTo || [],
+        tags: task.tags,
+        estimatedHours: task.estimatedHours,
+        dueDate: task.dueDate,
+        featureId: task.featureId,
+        epicId: task.epicId,
+        releaseId: task.releaseId
+      });
     } else {
       setFormData({
         title: "",
@@ -76,112 +67,82 @@ export function AddEditTaskDialog({
         status: "not_started",
         priority: "medium",
         assignedTo: [],
+        tags: [],
+        estimatedHours: 0,
+        dueDate: undefined,
         featureId: undefined,
         epicId: undefined,
-        releaseId: undefined,
-        estimatedHours: undefined,
-        dueDate: undefined,
-        tags: []
+        releaseId: undefined
       });
     }
   }, [task, open]);
 
-  const handleSave = () => {
-    if (!formData.title?.trim()) {
-      return;
-    }
-
-    // Convert "none" values back to undefined
-    const processedData = {
-      ...formData,
-      featureId: formData.featureId === "none" ? undefined : formData.featureId,
-      epicId: formData.epicId === "none" ? undefined : formData.epicId,
-      releaseId: formData.releaseId === "none" ? undefined : formData.releaseId,
-    };
-
-    onSave(processedData);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title?.trim()) return;
+    
+    onSave(formData);
     onOpenChange(false);
   };
 
-  const handleAddTag = () => {
+  const addTag = () => {
     if (newTag.trim() && !formData.tags?.includes(newTag.trim())) {
-      setFormData({
-        ...formData,
-        tags: [...(formData.tags || []), newTag.trim()]
-      });
+      setFormData(prev => ({
+        ...prev,
+        tags: [...(prev.tags || []), newTag.trim()]
+      }));
       setNewTag("");
     }
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setFormData({
-      ...formData,
-      tags: formData.tags?.filter(tag => tag !== tagToRemove) || []
-    });
-  };
-
-  const handleToggleAssignee = (userId: string) => {
-    const currentAssignees = formData.assignedTo || [];
-    const isAssigned = currentAssignees.includes(userId);
-    
-    if (isAssigned) {
-      setFormData({
-        ...formData,
-        assignedTo: currentAssignees.filter(id => id !== userId)
-      });
-    } else {
-      setFormData({
-        ...formData,
-        assignedTo: [...currentAssignees, userId]
-      });
-    }
-  };
-
-  const getAssignedUserNames = () => {
-    const assignedUsers = mockUsers.filter(user => formData.assignedTo?.includes(user.id));
-    return assignedUsers.map(user => user.name).join(", ") || "No one assigned";
+  const removeTag = (tagToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags?.filter(tag => tag !== tagToRemove) || []
+    }));
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{task ? "Edit Task" : "Create New Task"}</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 gap-4">
-            <div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
               <Label htmlFor="title">Title *</Label>
               <Input
                 id="title"
                 value={formData.title || ""}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter task title"
+                required
               />
             </div>
             
-            <div>
+            <div className="col-span-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 value={formData.description || ""}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Enter task description"
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Describe the task"
                 rows={3}
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+            
             <div>
               <Label htmlFor="status">Status</Label>
               <Select
-                value={formData.status || "not_started"}
-                onValueChange={(value: Task["status"]) => setFormData({ ...formData, status: value })}
+                value={formData.status}
+                onValueChange={(value: Task["status"]) => 
+                  setFormData(prev => ({ ...prev, status: value }))
+                }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="not_started">Not Started</SelectItem>
@@ -192,15 +153,17 @@ export function AddEditTaskDialog({
                 </SelectContent>
               </Select>
             </div>
-
+            
             <div>
               <Label htmlFor="priority">Priority</Label>
               <Select
-                value={formData.priority || "medium"}
-                onValueChange={(value: Task["priority"]) => setFormData({ ...formData, priority: value })}
+                value={formData.priority}
+                onValueChange={(value: Task["priority"]) => 
+                  setFormData(prev => ({ ...prev, priority: value }))
+                }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
@@ -210,49 +173,49 @@ export function AddEditTaskDialog({
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div>
-            <Label htmlFor="assignees">Assigned To</Label>
-            <Popover open={showAssigneeDropdown} onOpenChange={setShowAssigneeDropdown}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal">
-                  {getAssignedUserNames()}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80">
-                <div className="space-y-2">
-                  <h4 className="font-medium">Select Team Members</h4>
-                  {mockUsers.map((user) => (
-                    <div key={user.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={user.id}
-                        checked={formData.assignedTo?.includes(user.id) || false}
-                        onCheckedChange={() => handleToggleAssignee(user.id)}
-                      />
-                      <label htmlFor={user.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        {user.name} ({user.email})
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4">
+            
             <div>
-              <Label htmlFor="feature">Linked Feature (Optional)</Label>
+              <Label htmlFor="estimatedHours">Estimated Hours</Label>
+              <Input
+                id="estimatedHours"
+                type="number"
+                value={formData.estimatedHours || 0}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  estimatedHours: parseInt(e.target.value) || 0 
+                }))}
+                min="0"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="dueDate">Due Date</Label>
+              <Input
+                id="dueDate"
+                type="date"
+                value={formData.dueDate ? new Date(formData.dueDate).toISOString().split('T')[0] : ""}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  dueDate: e.target.value ? new Date(e.target.value) : undefined 
+                }))}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="feature">Related Feature</Label>
               <Select
-                value={formData.featureId || "none"}
-                onValueChange={(value) => setFormData({ ...formData, featureId: value === "none" ? undefined : value })}
+                value={formData.featureId || ""}
+                onValueChange={(value) => setFormData(prev => ({ 
+                  ...prev, 
+                  featureId: value || undefined 
+                }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a feature" />
+                  <SelectValue placeholder="Select feature" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No feature</SelectItem>
-                  {features.map((feature) => (
+                  <SelectItem value="">No feature</SelectItem>
+                  {features.map(feature => (
                     <SelectItem key={feature.id} value={feature.id}>
                       {feature.title}
                     </SelectItem>
@@ -260,19 +223,22 @@ export function AddEditTaskDialog({
                 </SelectContent>
               </Select>
             </div>
-
+            
             <div>
-              <Label htmlFor="epic">Linked Epic (Optional)</Label>
+              <Label htmlFor="epic">Related Epic</Label>
               <Select
-                value={formData.epicId || "none"}
-                onValueChange={(value) => setFormData({ ...formData, epicId: value === "none" ? undefined : value })}
+                value={formData.epicId || ""}
+                onValueChange={(value) => setFormData(prev => ({ 
+                  ...prev, 
+                  epicId: value || undefined 
+                }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select an epic" />
+                  <SelectValue placeholder="Select epic" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No epic</SelectItem>
-                  {epics.map((epic) => (
+                  <SelectItem value="">No epic</SelectItem>
+                  {epics.map(epic => (
                     <SelectItem key={epic.id} value={epic.id}>
                       {epic.title}
                     </SelectItem>
@@ -280,113 +246,49 @@ export function AddEditTaskDialog({
                 </SelectContent>
               </Select>
             </div>
-
-            <div>
-              <Label htmlFor="release">Linked Release (Optional)</Label>
-              <Select
-                value={formData.releaseId || "none"}
-                onValueChange={(value) => setFormData({ ...formData, releaseId: value === "none" ? undefined : value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a release" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No release</SelectItem>
-                  {releases.map((release) => (
-                    <SelectItem key={release.id} value={release.id}>
-                      {release.name} (v{release.version})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            
+            <div className="col-span-2">
+              <Label>Tags</Label>
+              <div className="flex gap-2 mb-2">
+                <Input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="Add tag"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addTag();
+                    }
+                  }}
+                />
+                <Button type="button" onClick={addTag} variant="outline">
+                  Add
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {formData.tags?.map(tag => (
+                  <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                    {tag}
+                    <X 
+                      className="h-3 w-3 cursor-pointer" 
+                      onClick={() => removeTag(tag)}
+                    />
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="estimatedHours">Estimated Hours</Label>
-              <Input
-                id="estimatedHours"
-                type="number"
-                min="0"
-                step="0.5"
-                value={formData.estimatedHours || ""}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  estimatedHours: e.target.value ? parseFloat(e.target.value) : undefined 
-                })}
-                placeholder="0"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="dueDate">Due Date</Label>
-              <Popover open={showCalendar} onOpenChange={setShowCalendar}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.dueDate ? format(formData.dueDate, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.dueDate}
-                    onSelect={(date) => {
-                      setFormData({ ...formData, dueDate: date });
-                      setShowCalendar(false);
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="tags">Tags</Label>
-            <div className="flex gap-2 mb-2">
-              <Input
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                placeholder="Add a tag"
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddTag();
-                  }
-                }}
-              />
-              <Button type="button" onClick={handleAddTag} variant="outline">
-                Add
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {formData.tags?.map((tag) => (
-                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                  {tag}
-                  <X
-                    className="h-3 w-3 cursor-pointer"
-                    onClick={() => handleRemoveTag(tag)}
-                  />
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+          
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!formData.title?.trim()}>
+            <Button type="submit">
               {task ? "Update Task" : "Create Task"}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
-}
+};
