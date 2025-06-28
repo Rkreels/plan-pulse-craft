@@ -4,7 +4,6 @@ import { TabsContent } from "@/components/ui/tabs";
 import { FeatureCard } from "./FeatureCard";
 import { Feature, Epic } from "@/types";
 import { useAppContext } from "@/contexts/AppContext";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 interface FeatureTabContentProps {
   activeTab: string;
