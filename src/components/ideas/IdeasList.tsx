@@ -2,21 +2,27 @@
 import React from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ThumbsUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ThumbsUp, Edit, Trash2 } from "lucide-react";
 import { Feature } from "@/types";
 
 interface IdeasListProps {
   items: Feature[];
   onEditItem: (item: Feature) => void;
   onDeleteItem: (id: string) => void;
+  onVoteItem: (item: Feature) => void;
   hasEditPermission: boolean;
   hasDeletePermission: boolean;
   type: "idea" | "backlog";
 }
 
 const IdeasList: React.FC<IdeasListProps> = ({ 
-  items, onEditItem, onDeleteItem, 
-  hasEditPermission, hasDeletePermission,
+  items, 
+  onEditItem, 
+  onDeleteItem, 
+  onVoteItem,
+  hasEditPermission, 
+  hasDeletePermission,
   type
 }) => {
   if (items.length === 0) {
@@ -35,13 +41,23 @@ const IdeasList: React.FC<IdeasListProps> = ({
     );
   }
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "critical": return "bg-red-500 text-white";
+      case "high": return "bg-orange-500 text-white";
+      case "medium": return "bg-blue-500 text-white";
+      case "low": return "bg-green-500 text-white";
+      default: return "bg-gray-500 text-white";
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {items.map(item => (
-        <Card key={item.id}>
+        <Card key={item.id} className="hover:shadow-lg transition-shadow">
           <CardHeader className="pb-2">
-            <div className="flex justify-between">
-              <Badge>{type === "idea" ? "Idea" : "Backlog"}</Badge>
+            <div className="flex justify-between items-start">
+              <Badge variant="outline">{type === "idea" ? "Idea" : "Backlog"}</Badge>
               <div className="flex items-center gap-2">
                 {hasEditPermission && (
                   <Button 
@@ -57,7 +73,7 @@ const IdeasList: React.FC<IdeasListProps> = ({
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-8 w-8 text-red-500"
+                    className="h-8 w-8 text-red-500 hover:text-red-700"
                     onClick={() => {
                       if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
                         onDeleteItem(item.id);
@@ -69,27 +85,43 @@ const IdeasList: React.FC<IdeasListProps> = ({
                 )}
               </div>
             </div>
-            <h3 className="font-bold text-lg mt-2">{item.title}</h3>
+            <h3 className="font-bold text-lg mt-2 line-clamp-2">{item.title}</h3>
           </CardHeader>
           <CardContent className="pb-2">
-            <p className="text-sm text-muted-foreground line-clamp-3">
+            <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
               {item.description}
             </p>
-          </CardContent>
-          <CardFooter className="border-t pt-3 flex justify-between">
-            <div className="flex gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center">
-                <span className="font-medium mr-1">Priority:</span>
-                <Badge variant="outline" className="capitalize">{item.priority}</Badge>
+            {item.userStory && (
+              <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded mb-2">
+                <strong>User Story:</strong> {item.userStory}
               </div>
-              <div>
-                <span className="font-medium mr-1">Value:</span>
-                {item.value}/10
+            )}
+          </CardContent>
+          <CardFooter className="border-t pt-3 flex justify-between items-center">
+            <div className="flex gap-3 text-xs">
+              <div className="flex items-center gap-1">
+                <span className="font-medium">Priority:</span>
+                <Badge className={getPriorityColor(item.priority)}>{item.priority}</Badge>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="font-medium">Value:</span>
+                <span>{item.value}/10</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="font-medium">Effort:</span>
+                <span>{item.effort}/10</span>
               </div>
             </div>
-            <div className="flex items-center gap-1">
-              <ThumbsUp className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{item.votes}</span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onVoteItem(item)}
+                className="flex items-center gap-1"
+              >
+                <ThumbsUp className="h-3 w-3" />
+                <span className="font-medium">{item.votes || 0}</span>
+              </Button>
             </div>
           </CardFooter>
         </Card>
@@ -97,9 +129,5 @@ const IdeasList: React.FC<IdeasListProps> = ({
     </div>
   );
 };
-
-// Import the UI components
-import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
 
 export default IdeasList;

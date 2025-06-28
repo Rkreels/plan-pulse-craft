@@ -5,6 +5,7 @@ import {
   Epic, Feature, Feedback, RoadmapView, Task 
 } from "@/types";
 import { getAllMockData } from "@/utils/mockData";
+import { createEnhancedMockData } from "@/utils/enhancedMockData";
 import { useToast } from "@/hooks/use-toast";
 import { AppContextType } from "./app/types";
 import { createFeatureActions } from "./app/featureActions";
@@ -47,74 +48,52 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const data = getAllMockData();
+        const baseData = getAllMockData();
+        const enhancedData = createEnhancedMockData();
         
         // Set the current user to the first product manager
-        const productManager = data.users.find(u => u.role === "product_manager") || data.users[0];
+        const productManager = baseData.users.find(u => u.role === "product_manager") || baseData.users[0];
         setCurrentUser(productManager);
         
-        // Set all other data
-        setWorkspace(data.workspace);
-        setGoals(data.goals);
-        setInitiatives(data.initiatives);
-        setReleases(data.releases);
-        setEpics(data.epics);
-        setFeatures(data.features);
-        setFeedback(data.feedback);
-        setRoadmapViews(data.roadmapViews);
+        // Set base data
+        setWorkspace(baseData.workspace);
+        setInitiatives(baseData.initiatives);
+        setRoadmapViews(baseData.roadmapViews);
         
-        // Initialize some sample tasks
-        setTasks([
-          {
-            id: "task-1",
-            title: "Implement user authentication",
-            description: "Add login and registration functionality",
-            status: "in_progress",
-            priority: "high",
-            assignedTo: [productManager?.id || ""],
-            featureId: data.features[0]?.id,
-            estimatedHours: 8,
-            actualHours: 5,
-            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            tags: ["frontend", "security"],
-            progress: 60,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            createdBy: productManager?.id || "",
-            workspaceId: "workspace-1"
-          },
-          {
-            id: "task-2",
-            title: "Design database schema",
-            description: "Create database tables and relationships",
-            status: "completed",
-            priority: "medium",
-            assignedTo: [productManager?.id || ""],
-            featureId: data.features[1]?.id,
-            estimatedHours: 4,
-            actualHours: 4,
-            dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-            tags: ["backend", "database"],
-            progress: 100,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            createdBy: productManager?.id || "",
-            workspaceId: "workspace-1"
-          }
-        ]);
+        // Set enhanced data
+        setGoals(enhancedData.goals);
+        setReleases(enhancedData.releases);
+        setEpics(enhancedData.epics);
+        setFeatures(enhancedData.features);
+        setFeedback(enhancedData.feedback);
+        setTasks(enhancedData.tasks);
         
         // Set default view
-        const defaultView = data.roadmapViews.find(v => v.isDefault) || data.roadmapViews[0];
+        const defaultView = baseData.roadmapViews.find(v => v.isDefault) || baseData.roadmapViews[0];
         setCurrentView(defaultView);
+        
+        console.log("Enhanced data loaded:", {
+          goals: enhancedData.goals.length,
+          releases: enhancedData.releases.length,
+          epics: enhancedData.epics.length,
+          features: enhancedData.features.length,
+          feedback: enhancedData.feedback.length,
+          tasks: enhancedData.tasks.length
+        });
       } catch (error) {
         console.error("Error loading data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load application data",
+          variant: "destructive"
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadData();
-  }, []);
+  }, [toast]);
 
   // Create the context value object
   const contextValue: AppContextType = {
