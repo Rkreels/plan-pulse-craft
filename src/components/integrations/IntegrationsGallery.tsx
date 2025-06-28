@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Zap, Github, Slack, Trello, Figma, Jira, Discord } from "lucide-react";
+import { Settings, Zap, Github, Slack, Trello, Figma, Ticket, MessageCircle } from "lucide-react";
 
 interface Integration {
   id: string;
@@ -46,7 +45,7 @@ export const IntegrationsGallery = () => {
       id: "jira",
       name: "Jira",
       description: "Sync tickets and project management data",
-      icon: Jira,
+      icon: Ticket,
       category: "project-management",
       isConnected: false,
       isConfigured: false
@@ -74,7 +73,7 @@ export const IntegrationsGallery = () => {
       id: "discord",
       name: "Discord",
       description: "Team communication and notifications",
-      icon: Discord,
+      icon: MessageCircle,
       category: "communication",
       isConnected: false,
       isConfigured: false
