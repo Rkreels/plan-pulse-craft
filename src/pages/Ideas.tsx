@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import { PageTitle } from "@/components/common/PageTitle";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Check, LightbulbIcon, Plus, ThumbsUp, Search, Download, Upload } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 import { AddEditFeatureDialog } from "@/components/dialogs/AddEditFeatureDialog";
-import { IdeasList } from "@/components/ideas/IdeasList";
+import IdeasList from "@/components/ideas/IdeasList";
 import { v4 as uuidv4 } from "uuid";
 import { Feature } from "@/types";
 import { useNavigate } from "react-router-dom";
