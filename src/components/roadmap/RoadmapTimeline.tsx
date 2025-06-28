@@ -1,293 +1,181 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Target, Users, Edit } from "lucide-react";
-import { Goal, Release, Epic, Feature } from "@/types";
+import { Feature, Release, Epic } from "@/types";
+import { Calendar, Clock, Users, Target } from "lucide-react";
 
 interface RoadmapTimelineProps {
-  goals: Goal[];
+  features: Feature[];
   releases: Release[];
   epics: Epic[];
-  features: Feature[];
-  onEditGoal?: (goal: Goal) => void;
-  onEditRelease?: (release: Release) => void;
-  onEditEpic?: (epic: Epic) => void;
+  onFeatureUpdate: (featureId: string, updates: Partial<Feature>) => void;
 }
 
 export const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
-  goals,
+  features,
   releases,
   epics,
-  features,
-  onEditGoal,
-  onEditRelease,
-  onEditEpic
+  onFeatureUpdate
 }) => {
-  const [selectedQuarter, setSelectedQuarter] = useState<number>(0);
-
-  // Create quarters for the next 12 months
-  const createQuarters = () => {
-    const quarters = [];
-    const now = new Date();
+  const getQuarterData = () => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
     
-    for (let i = 0; i < 4; i++) {
-      const quarterStart = new Date(now);
-      quarterStart.setMonth(now.getMonth() + i * 3);
-      quarterStart.setDate(1);
-      
-      const quarterEnd = new Date(quarterStart);
-      quarterEnd.setMonth(quarterStart.getMonth() + 3);
-      quarterEnd.setDate(0);
-      
-      quarters.push({
-        name: `Q${Math.floor((quarterStart.getMonth() + 3) / 3)}/${quarterStart.getFullYear()}`,
-        start: quarterStart,
-        end: quarterEnd,
-        index: i
+    const quarters = [
+      { name: "Q1", start: new Date(currentYear, 0, 1), end: new Date(currentYear, 2, 31) },
+      { name: "Q2", start: new Date(currentYear, 3, 1), end: new Date(currentYear, 5, 30) },
+      { name: "Q3", start: new Date(currentYear, 6, 1), end: new Date(currentYear, 8, 30) },
+      { name: "Q4", start: new Date(currentYear, 9, 1), end: new Date(currentYear, 11, 31) }
+    ];
+
+    return quarters.map(quarter => {
+      const quarterFeatures = features.filter(feature => {
+        const featureDate = new Date(feature.targetDate || feature.createdAt);
+        return featureDate >= quarter.start && featureDate <= quarter.end;
       });
-    }
-    return quarters;
+
+      const quarterReleases = releases.filter(release => {
+        const releaseDate = new Date(release.targetDate);
+        return releaseDate >= quarter.start && releaseDate <= quarter.end;
+      });
+
+      return {
+        ...quarter,
+        features: quarterFeatures,
+        releases: quarterReleases,
+        progress: quarterFeatures.length > 0 
+          ? (quarterFeatures.filter(f => f.status === "completed").length / quarterFeatures.length) * 100 
+          : 0
+      };
+    });
   };
 
-  const quarters = createQuarters();
+  const quarterData = getQuarterData();
 
-  const getItemsForQuarter = <T extends { targetDate?: Date | string }>(
-    items: T[], 
-    quarter: { start: Date; end: Date }
-  ): T[] => {
-    return items.filter(item => {
-      if (!item.targetDate) return false;
-      const targetDate = new Date(item.targetDate);
-      return targetDate >= quarter.start && targetDate <= quarter.end;
-    });
+  const handleStatusChange = (featureId: string, newStatus: Feature["status"]) => {
+    onFeatureUpdate(featureId, { status: newStatus });
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed": return "bg-green-500 text-white";
-      case "in_progress": return "bg-blue-500 text-white";
-      case "at_risk": 
-      case "delayed": return "bg-red-500 text-white";
-      case "review": return "bg-orange-500 text-white";
-      default: return "bg-gray-500 text-white";
+      case "completed": return "bg-green-100 text-green-800";
+      case "in_progress": return "bg-blue-100 text-blue-800";
+      case "review": return "bg-purple-100 text-purple-800";
+      case "planned": return "bg-yellow-100 text-yellow-800";
+      case "backlog": return "bg-gray-100 text-gray-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
-  const renderGoalCard = (goal: Goal) => (
-    <Card key={goal.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <h4 className="font-medium text-sm line-clamp-2">{goal.title}</h4>
-          {onEditGoal && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditGoal(goal);
-              }}
-            >
-              <Edit className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
-        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-          {goal.description}
-        </p>
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <Badge className={getStatusColor(goal.status)}>
-              {goal.status.replace('_', ' ')}
-            </Badge>
-            <span className="text-xs text-muted-foreground">{goal.progress}%</span>
-          </div>
-          <Progress value={goal.progress} className="h-1" />
-          {goal.targetDate && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Calendar className="h-3 w-3" />
-              {new Date(goal.targetDate).toLocaleDateString()}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderReleaseCard = (release: Release) => (
-    <Card key={release.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <div>
-            <h4 className="font-medium text-sm">{release.name}</h4>
-            <span className="text-xs text-muted-foreground">v{release.version}</span>
-          </div>
-          {onEditRelease && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditRelease(release);
-              }}
-            >
-              <Edit className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
-        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-          {release.description}
-        </p>
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <Badge className={getStatusColor(release.status)}>
-              {release.status}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              {features.filter(f => f.releaseId === release.id).length} features
-            </span>
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Release: {new Date(release.releaseDate).toLocaleDateString()}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderEpicCard = (epic: Epic) => (
-    <Card key={epic.id} className="mb-3 cursor-pointer hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <h4 className="font-medium text-sm line-clamp-2">{epic.title}</h4>
-          {onEditEpic && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditEpic(epic);
-              }}
-            >
-              <Edit className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
-        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-          {epic.description}
-        </p>
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <Badge className={getStatusColor(epic.status)}>
-              {epic.status.replace('_', ' ')}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              {features.filter(f => f.epicId === epic.id).length} features
-            </span>
-          </div>
-          <div className="flex justify-between items-center text-xs text-muted-foreground">
-            <span>Progress</span>
-            <span>{epic.progress}%</span>
-          </div>
-          <Progress value={epic.progress} className="h-1" />
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "critical": return "bg-red-100 text-red-800";
+      case "high": return "bg-orange-100 text-orange-800";
+      case "medium": return "bg-yellow-100 text-yellow-800";
+      case "low": return "bg-green-100 text-green-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Quarter Navigation */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {quarters.map((quarter, index) => (
-          <Button
-            key={index}
-            variant={selectedQuarter === index ? "default" : "outline"}
-            className="p-4 h-auto flex-col"
-            onClick={() => setSelectedQuarter(index)}
-          >
-            <div className="font-medium">{quarter.name}</div>
-            <div className="text-xs text-muted-foreground">
-              {quarter.start.toLocaleDateString()} - {quarter.end.toLocaleDateString()}
-            </div>
-          </Button>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        {quarterData.map(quarter => (
+          <Card key={quarter.name} className="relative">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg">{quarter.name} {quarter.start.getFullYear()}</CardTitle>
+                <Badge variant="outline">
+                  {quarter.features.length} features
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <span>
+                  {quarter.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - 
+                  {quarter.end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Quarter Progress</span>
+                  <span>{Math.round(quarter.progress)}%</span>
+                </div>
+                <Progress value={quarter.progress} className="h-2" />
+              </div>
+
+              {quarter.releases.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm mb-2 flex items-center gap-1">
+                    <Target className="h-3 w-3" />
+                    Releases
+                  </h4>
+                  <div className="space-y-1">
+                    {quarter.releases.map(release => (
+                      <div key={release.id} className="text-xs p-2 bg-blue-50 rounded">
+                        <div className="font-medium">{release.name}</div>
+                        <div className="text-muted-foreground">
+                          {new Date(release.targetDate).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <h4 className="font-medium text-sm mb-2 flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  Features
+                </h4>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {quarter.features.map(feature => (
+                    <div key={feature.id} className="p-2 border rounded-sm bg-background">
+                      <div className="flex justify-between items-start mb-1">
+                        <h5 className="font-medium text-xs line-clamp-2">{feature.title}</h5>
+                        <Badge className={`${getPriorityColor(feature.priority)} text-xs`}>
+                          {feature.priority}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                        {feature.description}
+                      </p>
+                      <div className="flex justify-between items-center">
+                        <select
+                          value={feature.status}
+                          onChange={(e) => handleStatusChange(feature.id, e.target.value as Feature["status"])}
+                          className="text-xs border rounded px-1 py-0.5"
+                        >
+                          <option value="backlog">Backlog</option>
+                          <option value="planned">Planned</option>
+                          <option value="in_progress">In Progress</option>
+                          <option value="review">Review</option>
+                          <option value="completed">Completed</option>
+                        </select>
+                        <span className="text-xs text-muted-foreground">
+                          {feature.progress}%
+                        </span>
+                      </div>
+                      <div className="mt-1">
+                        <Progress value={feature.progress} className="h-1" />
+                      </div>
+                    </div>
+                  ))}
+                  {quarter.features.length === 0 && (
+                    <div className="text-xs text-muted-foreground text-center py-4">
+                      No features planned
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
-      </div>
-
-      {/* Timeline Content */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Goals Column */}
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <Target className="h-5 w-5 text-blue-500" />
-            <h3 className="text-lg font-semibold">Goals</h3>
-            <Badge variant="secondary">
-              {getItemsForQuarter(goals, quarters[selectedQuarter]).length}
-            </Badge>
-          </div>
-          <div className="space-y-3">
-            {getItemsForQuarter(goals, quarters[selectedQuarter]).map(renderGoalCard)}
-            {getItemsForQuarter(goals, quarters[selectedQuarter]).length === 0 && (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                No goals this quarter
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Releases Column */}
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <Calendar className="h-5 w-5 text-green-500" />
-            <h3 className="text-lg font-semibold">Releases</h3>
-            <Badge variant="secondary">
-              {releases.filter(r => {
-                const releaseDate = new Date(r.releaseDate);
-                const quarter = quarters[selectedQuarter];
-                return releaseDate >= quarter.start && releaseDate <= quarter.end;
-              }).length}
-            </Badge>
-          </div>
-          <div className="space-y-3">
-            {releases
-              .filter(r => {
-                const releaseDate = new Date(r.releaseDate);
-                const quarter = quarters[selectedQuarter];
-                return releaseDate >= quarter.start && releaseDate <= quarter.end;
-              })
-              .map(renderReleaseCard)}
-            {releases.filter(r => {
-              const releaseDate = new Date(r.releaseDate);
-              const quarter = quarters[selectedQuarter];
-              return releaseDate >= quarter.start && releaseDate <= quarter.end;
-            }).length === 0 && (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                No releases this quarter
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Epics Column */}
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="h-5 w-5 text-purple-500" />
-            <h3 className="text-lg font-semibold">Epics</h3>
-            <Badge variant="secondary">
-              {getItemsForQuarter(epics, quarters[selectedQuarter]).length}
-            </Badge>
-          </div>
-          <div className="space-y-3">
-            {getItemsForQuarter(epics, quarters[selectedQuarter]).map(renderEpicCard)}
-            {getItemsForQuarter(epics, quarters[selectedQuarter]).length === 0 && (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                No epics this quarter
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );
