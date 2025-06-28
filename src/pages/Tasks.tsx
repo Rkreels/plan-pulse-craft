@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { PageTitle } from "@/components/common/PageTitle";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -12,6 +11,8 @@ import { TaskDetails } from "@/components/tasks/TaskDetails";
 import { TaskMetrics } from "@/components/tasks/TaskMetrics";
 import { TaskFilters } from "@/components/tasks/TaskFilters";
 import { TaskTable } from "@/components/tasks/TaskTable";
+import { TaskBoard } from "@/components/tasks/TaskBoard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 const Tasks = () => {
@@ -189,13 +190,33 @@ const Tasks = () => {
           <div>
             <TaskMetrics tasks={filteredTasks} />
             
-            <TaskTable
-              tasks={filteredTasks}
-              features={features}
-              onViewTask={handleViewTask}
-              onEditTask={handleEditTask}
-              onUpdateStatus={handleUpdateStatus}
-            />
+            <Tabs defaultValue="board" className="mt-6">
+              <TabsList>
+                <TabsTrigger value="board">Board View</TabsTrigger>
+                <TabsTrigger value="table">Table View</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="board">
+                <TaskBoard
+                  onCreateTask={() => {
+                    setEditingTask(undefined);
+                    setShowTaskDialog(true);
+                  }}
+                  onEditTask={handleEditTask}
+                  onViewTask={handleViewTask}
+                />
+              </TabsContent>
+              
+              <TabsContent value="table">
+                <TaskTable
+                  tasks={filteredTasks}
+                  features={features}
+                  onViewTask={handleViewTask}
+                  onEditTask={handleEditTask}
+                  onUpdateStatus={handleUpdateStatus}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
         )}
       </div>
