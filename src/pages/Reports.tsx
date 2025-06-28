@@ -22,8 +22,8 @@ const Reports = () => {
       generatedAt: new Date().toISOString(),
       metrics: {
         total: features.length,
-        completed: features.filter(f => f.status === "released").length,
-        inProgress: features.filter(f => f.status === "in_development").length,
+        completed: features.filter(f => f.status === "completed").length,
+        inProgress: features.filter(f => f.status === "in_progress").length,
         pending: features.filter(f => f.status === "backlog").length,
       }
     },
@@ -44,6 +44,11 @@ const Reports = () => {
 
   const selectedReport = reports.find(r => r.id === selectedReportId);
 
+  const handleReportSaved = () => {
+    setIsBuilding(false);
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   if (isBuilding) {
     return (
       <div className="space-y-6">
@@ -52,11 +57,8 @@ const Reports = () => {
           description="Create custom reports and analytics"
         />
         <ReportBuilder 
-          onSave={() => {
-            setIsBuilding(false);
-            setRefreshTrigger(prev => prev + 1);
-          }}
-          onCancel={() => setIsBuilding(false)}
+          reportId={null}
+          onReportSaved={handleReportSaved}
         />
       </div>
     );

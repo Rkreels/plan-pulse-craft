@@ -25,8 +25,9 @@ export const TaskBoard = ({ onCreateTask, onEditTask, onViewTask }: TaskBoardPro
   const taskColumns = {
     not_started: tasks.filter(t => t.status === 'not_started'),
     in_progress: tasks.filter(t => t.status === 'in_progress'),
+    review: tasks.filter(t => t.status === 'review'),
     completed: tasks.filter(t => t.status === 'completed'),
-    on_hold: tasks.filter(t => t.status === 'on_hold')
+    blocked: tasks.filter(t => t.status === 'blocked')
   };
 
   const handleDragStart = (task: Task) => {
@@ -72,7 +73,8 @@ export const TaskBoard = ({ onCreateTask, onEditTask, onViewTask }: TaskBoardPro
     switch (status) {
       case 'completed': return 'border-green-200 bg-green-50';
       case 'in_progress': return 'border-blue-200 bg-blue-50';
-      case 'on_hold': return 'border-orange-200 bg-orange-50';
+      case 'review': return 'border-purple-200 bg-purple-50';
+      case 'blocked': return 'border-red-200 bg-red-50';
       default: return 'border-gray-200 bg-gray-50';
     }
   };
@@ -100,7 +102,7 @@ export const TaskBoard = ({ onCreateTask, onEditTask, onViewTask }: TaskBoardPro
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         {Object.entries(taskColumns).map(([status, columnTasks]) => (
           <div
             key={status}
