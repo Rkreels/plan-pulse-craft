@@ -11,6 +11,8 @@ interface RoadmapTimelineProps {
   features: Feature[];
   releases: Release[];
   epics: Epic[];
+  timeRange?: string;
+  groupBy?: string;
   onFeatureUpdate: (featureId: string, updates: Partial<Feature>) => void;
 }
 
@@ -33,12 +35,12 @@ export const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
 
     return quarters.map(quarter => {
       const quarterFeatures = features.filter(feature => {
-        const featureDate = new Date(feature.targetDate || feature.createdAt);
+        const featureDate = new Date(feature.createdAt);
         return featureDate >= quarter.start && featureDate <= quarter.end;
       });
 
       const quarterReleases = releases.filter(release => {
-        const releaseDate = new Date(release.targetDate);
+        const releaseDate = new Date(release.releaseDate);
         return releaseDate >= quarter.start && releaseDate <= quarter.end;
       });
 
@@ -120,7 +122,7 @@ export const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
                       <div key={release.id} className="text-xs p-2 bg-blue-50 rounded">
                         <div className="font-medium">{release.name}</div>
                         <div className="text-muted-foreground">
-                          {new Date(release.targetDate).toLocaleDateString()}
+                          {new Date(release.releaseDate).toLocaleDateString()}
                         </div>
                       </div>
                     ))}

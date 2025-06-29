@@ -36,8 +36,7 @@ const Releases = () => {
     const newRelease: Release = {
       ...release,
       id: release.id || uuidv4(),
-      createdAt: new Date(),
-      updatedAt: new Date()
+      workspaceId: "w1"
     };
     
     addRelease(newRelease);
@@ -157,7 +156,7 @@ const Releases = () => {
                   
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Features: {releaseFeatures.length}</span>
-                    <span>Due: {new Date(release.targetDate).toLocaleDateString()}</span>
+                    <span>Due: {new Date(release.releaseDate).toLocaleDateString()}</span>
                   </div>
                   
                   <div className="flex gap-2">

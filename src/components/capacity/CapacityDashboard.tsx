@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Users, Clock, TrendingUp, AlertTriangle, Plus, Edit, Download, UserPlus } from "lucide-react";
+import { Users, Clock, TrendingUp, AlertTriangle, Plus, Edit, Download, UserPlus, Calendar } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts";
 import { toast } from "sonner";
 
