@@ -124,22 +124,35 @@ export const ReportViewer = ({ report, onBack, onEdit }: ReportViewerProps) => {
             <Edit className="h-4 w-4 mr-2" />
             Edit
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => handleExport('json')}
-            disabled={isExporting}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export JSON
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => handleExport('csv')}
-            disabled={isExporting}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
+          <div className="flex gap-1">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handleExport('json')}
+              disabled={isExporting}
+            >
+              <Download className="h-4 w-4 mr-1" />
+              JSON
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handleExport('csv')}
+              disabled={isExporting}
+            >
+              <Download className="h-4 w-4 mr-1" />
+              CSV
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handleExport('pdf')}
+              disabled={isExporting}
+            >
+              <Download className="h-4 w-4 mr-1" />
+              PDF
+            </Button>
+          </div>
         </div>
       </div>
 
