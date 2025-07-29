@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppContext } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
+import { VoiceTrainingButton } from "@/components/voice-training/VoiceTrainingButton";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -103,6 +104,7 @@ const Index = () => {
           description="Here's what's happening in your product roadmap"
         />
         <div className="flex gap-2">
+          <VoiceTrainingButton />
           <Button variant="outline" onClick={() => navigate("/features")}>
             <Plus className="h-4 w-4 mr-2" />
             Add Feature

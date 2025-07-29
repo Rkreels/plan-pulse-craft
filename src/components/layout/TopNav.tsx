@@ -15,6 +15,8 @@ import { Bell, LogOut, Moon, Search, Sun, User } from "lucide-react";
 import { useState } from "react";
 import { useAppContext } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
+import { VoiceTrainingButton } from "@/components/voice-training/VoiceTrainingButton";
+import { VoiceTrainingMenu } from "@/components/voice-training/VoiceTrainingMenu";
 
 export function TopNav() {
   const { currentUser, setCurrentUser } = useAppContext();
@@ -59,6 +61,9 @@ export function TopNav() {
         </div>
 
         <div className="flex items-center gap-2">
+          <VoiceTrainingButton />
+          <VoiceTrainingMenu />
+          
           <Button variant="ghost" size="icon" className="rounded-full">
             <Bell className="h-5 w-5" />
           </Button>
