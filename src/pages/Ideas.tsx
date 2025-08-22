@@ -363,12 +363,11 @@ const Ideas = () => {
       <PageTitle
         title="Feature Ideas"
         description="Collect and organize new product ideas"
-      action={{
-        label: "Voice Training",
-        onClick: () => {},
-        icon: <VoiceTrainingButton module="ideas" />
-      }}
       />
+      
+      <div className="flex justify-end mb-4">
+        <VoiceTrainingButton module="ideas" />
+      </div>
       
       {filterErrors.length > 0 && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">

@@ -136,12 +136,10 @@ const Reports = () => {
         <PageTitle 
           title="Report Builder" 
           description="Create custom reports and analytics"
-          action={{
-            label: "Voice Training",
-            onClick: () => {},
-            icon: <VoiceTrainingButton module="reports" />
-          }}
         />
+        <div className="flex justify-end mb-4">
+          <VoiceTrainingButton module="reports" />
+        </div>
         <ReportBuilder 
           reportId={null}
           onReportSaved={handleReportSaved}
@@ -167,12 +165,11 @@ const Reports = () => {
       <PageTitle 
         title="Reports & Analytics" 
         description="Generate insights and track progress with custom reports"
-          action={{
-            label: "Voice Training", 
-            onClick: () => {},
-            icon: <VoiceTrainingButton module="reports" />
-          }}
       />
+      
+      <div className="flex justify-end mb-4">
+        <VoiceTrainingButton module="reports" />
+      </div>
 
       {/* Quick Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
