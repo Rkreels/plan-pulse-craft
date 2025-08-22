@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Volume2 } from 'lucide-react';
-import { useVoiceTraining, VOICE_GUIDES } from './VoiceTrainingProvider';
+import { useVoiceTraining, VOICE_GUIDES } from './EnhancedVoiceTrainingProvider';
 import { useLocation } from 'react-router-dom';
 
 interface VoiceTrainingButtonProps {

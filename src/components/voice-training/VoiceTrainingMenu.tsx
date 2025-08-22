@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BookOpen, Play, Clock, Lightbulb, Target, Keyboard } from 'lucide-react';
-import { useVoiceTraining, VOICE_GUIDES } from './VoiceTrainingProvider';
+import { useVoiceTraining, VOICE_GUIDES } from './EnhancedVoiceTrainingProvider';
 
 export const VoiceTrainingMenu: React.FC = () => {
   const { startTraining, isActive } = useVoiceTraining();
