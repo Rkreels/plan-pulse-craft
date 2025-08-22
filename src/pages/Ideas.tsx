@@ -308,7 +308,7 @@ const Ideas = () => {
                   feedback: [],
                   progress: 0,
                   acceptanceCriteria: [],
-                  score: (validatedIdea.value * (validatedIdea.priority === "critical" ? 4 : validatedIdea.priority === "high" ? 3 : validatedIdea.priority === "medium" ? 2 : 1)) / validatedIdea.effort
+                  score: (validatedIdea.value * (validatedIdea.priority === "critical" ? 4 : validatedIdea.priority === "high" ? 3 : validatedIdea.priority === "medium" ? 2 : 1)) / (validatedIdea.effort || 1)
                 };
                 addFeature(newFeature);
                 successCount++;

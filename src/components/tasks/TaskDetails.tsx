@@ -23,7 +23,7 @@ interface TaskDetailsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   task: Task;
-  onUpdate: (task: Partial<Task>) => void;
+  onUpdate: (updates: Partial<Task>) => void;
   onDelete: (taskId: string) => void;
   features: Feature[];
   epics: Epic[];
@@ -283,7 +283,7 @@ export const TaskDetails = ({
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         task={task}
-        onSave={onUpdate}
+        onSave={(updates) => onUpdate(updates)}
         features={features}
         epics={epics}
         releases={releases}
