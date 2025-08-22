@@ -291,15 +291,26 @@ const Ideas = () => {
             importedIdeas.forEach((idea: any) => {
               try {
                 const validatedIdea = ideaSchema.parse(idea);
-                addFeature({
-                  ...validatedIdea,
+                const newFeature: Feature = {
                   id: uuidv4(),
+                  title: validatedIdea.title,
+                  description: validatedIdea.description,
+                  userStory: validatedIdea.userStory,
+                  priority: validatedIdea.priority,
+                  value: validatedIdea.value,
+                  effort: validatedIdea.effort,
                   status: "idea" as const,
                   createdAt: new Date(),
                   updatedAt: new Date(),
                   workspaceId: "workspace-1",
-                  votes: idea.votes || 0
-                });
+                  votes: idea.votes || 0,
+                  tags: [],
+                  feedback: [],
+                  progress: 0,
+                  acceptanceCriteria: [],
+                  score: (validatedIdea.value * (validatedIdea.priority === "critical" ? 4 : validatedIdea.priority === "high" ? 3 : validatedIdea.priority === "medium" ? 2 : 1)) / validatedIdea.effort
+                };
+                addFeature(newFeature);
                 successCount++;
               } catch (error) {
                 errorCount++;
@@ -352,7 +363,11 @@ const Ideas = () => {
       <PageTitle
         title="Feature Ideas"
         description="Collect and organize new product ideas"
-        action={<VoiceTrainingButton module="ideas" />}
+      action={{
+        label: "Voice Training",
+        onClick: () => {},
+        icon: <VoiceTrainingButton module="ideas" />
+      }}
       />
       
       {filterErrors.length > 0 && (

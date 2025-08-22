@@ -46,7 +46,7 @@ const Reports = () => {
         completed: feedback.filter(f => f.status === "closed").length,
         inProgress: feedback.filter(f => f.status === "reviewed").length,
         pending: feedback.filter(f => f.status === "new").length,
-        avgRating: feedback.length > 0 ? Math.round((feedback.reduce((sum, f) => sum + (f.rating || 0), 0) / feedback.length) * 10) / 10 : 0
+        avgRating: feedback.length > 0 ? Math.round((feedback.reduce((sum, f) => sum + (f.votes || 0), 0) / feedback.length) * 10) / 10 : 0
       },
       description: "Analysis of customer feedback trends and satisfaction"
     },
@@ -75,7 +75,7 @@ const Reports = () => {
         total: tasks.length,
         completed: tasks.filter(t => t.status === "completed").length,
         inProgress: tasks.filter(t => t.status === "in_progress").length,
-        pending: tasks.filter(t => t.status === "todo").length,
+        pending: tasks.filter(t => t.status === "not_started").length,
         productivity: tasks.length > 0 ? Math.round((tasks.filter(t => t.status === "completed").length / tasks.length) * 100) : 0
       },
       description: "Team productivity and task completion analysis"
@@ -136,7 +136,11 @@ const Reports = () => {
         <PageTitle 
           title="Report Builder" 
           description="Create custom reports and analytics"
-          action={<VoiceTrainingButton module="reports" />}
+          action={{
+            label: "Voice Training",
+            onClick: () => {},
+            icon: <VoiceTrainingButton module="reports" />
+          }}
         />
         <ReportBuilder 
           reportId={null}
@@ -163,7 +167,11 @@ const Reports = () => {
       <PageTitle 
         title="Reports & Analytics" 
         description="Generate insights and track progress with custom reports"
-        action={<VoiceTrainingButton module="reports" />}
+          action={{
+            label: "Voice Training", 
+            onClick: () => {},
+            icon: <VoiceTrainingButton module="reports" />
+          }}
       />
 
       {/* Quick Stats Overview */}

@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 interface ReportData {
   id: string;
   name: string;
-  type: "features" | "feedback" | "goals" | "analytics";
+  type: "features" | "feedback" | "goals" | "analytics" | "tasks";
   data: any[];
   generatedAt: string;
   metrics: {
@@ -20,6 +20,7 @@ interface ReportData {
     completed: number;
     inProgress: number;
     pending: number;
+    [key: string]: any;
   };
 }
 
