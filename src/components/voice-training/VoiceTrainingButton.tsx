@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Volume2 } from 'lucide-react';
@@ -25,6 +26,7 @@ export const VoiceTrainingButton: React.FC<VoiceTrainingButtonProps> = ({
     const path = location.pathname;
     if (path === '/') return 'dashboard';
     if (path.startsWith('/features')) return 'features';
+    if (path.startsWith('/ideas')) return 'ideas';
     if (path.startsWith('/roadmap')) return 'roadmap';
     if (path.startsWith('/goals')) return 'goals';
     if (path.startsWith('/tasks')) return 'tasks';
@@ -34,6 +36,11 @@ export const VoiceTrainingButton: React.FC<VoiceTrainingButtonProps> = ({
     if (path.startsWith('/reports')) return 'reports';
     if (path.startsWith('/capacity')) return 'capacity';
     if (path.startsWith('/settings')) return 'settings';
+    if (path.startsWith('/team')) return 'team';
+    if (path.startsWith('/competitor-analysis')) return 'competitor';
+    if (path.startsWith('/workflow-automation')) return 'workflow';
+    if (path.startsWith('/portfolio')) return 'portfolio';
+    if (path.startsWith('/idea-scoring')) return 'ideaScoring';
     return 'dashboard';
   };
 

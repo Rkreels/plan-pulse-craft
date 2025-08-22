@@ -60,7 +60,7 @@ export const useVoiceTraining = () => {
   return context;
 };
 
-// Enhanced voice guides with interactive elements
+// Comprehensive voice guides for all modules
 export const VOICE_GUIDES: Record<string, VoiceGuide> = {
   dashboard: {
     id: 'dashboard',
@@ -89,35 +89,17 @@ export const VOICE_GUIDES: Record<string, VoiceGuide> = {
         element: 'alerts',
         targetSelector: '[data-testid="alerts-section"]',
         interactionType: 'observe'
-      },
-      {
-        id: '4',
-        action: 'Analyze Progress Charts',
-        description: 'The charts section shows completion trends and status distribution.',
-        element: 'charts',
-        targetSelector: '.recharts-wrapper',
-        interactionType: 'hover'
-      },
-      {
-        id: '5',
-        action: 'Review Priority Items',
-        description: 'The sidebar shows high-priority features needing attention.',
-        element: 'priority-sidebar',
-        targetSelector: '.space-y-4',
-        interactionType: 'scroll'
       }
     ],
     tips: [
       'Check the dashboard daily for a quick overview',
       'Click on any metric to drill down into details',
-      'Use alerts to prioritize your daily work',
-      'Export charts for presentations'
+      'Use alerts to prioritize your daily work'
     ],
     useCases: [
       'Daily standup preparation',
       'Executive reporting',
-      'Team performance tracking',
-      'Identifying bottlenecks'
+      'Team performance tracking'
     ]
   },
   features: {
@@ -130,7 +112,6 @@ export const VOICE_GUIDES: Record<string, VoiceGuide> = {
         id: '1',
         action: 'Create New Feature',
         description: 'Click the "New Feature" button to open the creation dialog.',
-        element: 'new-feature-button',
         targetSelector: 'button:contains("New Feature")',
         interactionType: 'click'
       },
@@ -138,58 +119,222 @@ export const VOICE_GUIDES: Record<string, VoiceGuide> = {
         id: '2',
         action: 'Fill Feature Details',
         description: 'Enter title, description, user story, and acceptance criteria.',
-        element: 'feature-form',
         targetSelector: 'form',
         interactionType: 'type'
-      },
-      {
-        id: '3',
-        action: 'Set Priority and Effort',
-        description: 'Use the priority dropdown and effort slider to estimate complexity.',
-        element: 'priority-effort',
-        targetSelector: 'select, input[type="range"]',
-        interactionType: 'click'
-      },
-      {
-        id: '4',
-        action: 'Assign Team Members',
-        description: 'Select responsible team members from the assignee dropdown.',
-        element: 'assignees',
-        targetSelector: '[role="combobox"]',
-        interactionType: 'click'
-      },
-      {
-        id: '5',
-        action: 'Link to Epic and Release',
-        description: 'Connect this feature to strategic epics and delivery releases.',
-        element: 'linking',
-        targetSelector: 'select[name="epic"], select[name="release"]',
-        interactionType: 'click'
-      },
-      {
-        id: '6',
-        action: 'Save Feature',
-        description: 'Click Save to create your feature and add it to the backlog.',
-        element: 'save-button',
-        targetSelector: 'button[type="submit"]',
-        interactionType: 'click'
       }
     ],
     tips: [
       'Write clear acceptance criteria for better estimates',
       'Use tags to categorize features',
-      'Link customer feedback to validate importance',
-      'Regular status updates keep roadmaps accurate'
+      'Link customer feedback to validate importance'
     ],
     useCases: [
       'Backlog management',
       'Sprint planning',
-      'Stakeholder communication',
-      'Dependency tracking'
+      'Stakeholder communication'
+    ]
+  },
+  ideas: {
+    id: 'ideas',
+    module: 'Ideas',
+    title: 'Feature Ideas Management',
+    overview: 'Collect, evaluate, and prioritize new product ideas effectively.',
+    steps: [
+      {
+        id: '1',
+        action: 'Browse Ideas Collection',
+        description: 'Review all submitted ideas in the main grid layout.',
+        targetSelector: '.grid',
+        interactionType: 'observe'
+      },
+      {
+        id: '2',
+        action: 'Add New Idea',
+        description: 'Click the "New Idea" button to submit a new product concept.',
+        targetSelector: 'button:contains("New Idea")',
+        interactionType: 'click'
+      },
+      {
+        id: '3',
+        action: 'Vote for Ideas',
+        description: 'Use the thumbs up button to vote for promising ideas.',
+        targetSelector: 'button:contains("ThumbsUp")',
+        interactionType: 'click'
+      },
+      {
+        id: '4',
+        action: 'Promote to Feature',
+        description: 'Move validated ideas to the feature backlog using the Promote button.',
+        targetSelector: 'button:contains("Promote")',
+        interactionType: 'click'
+      }
     ],
-    shortcuts: ['Ctrl+N: New Feature', 'Ctrl+F: Search Features', 'Ctrl+S: Save Changes']
+    tips: [
+      'Vote regularly to surface the best ideas',
+      'Include user stories in idea descriptions',
+      'Set priority and effort estimates early',
+      'Export ideas for external review'
+    ],
+    useCases: [
+      'Innovation workshops',
+      'Customer suggestion processing',
+      'Team brainstorming sessions',
+      'Market opportunity evaluation'
+    ]
+  },
+  tasks: {
+    id: 'tasks',
+    module: 'Tasks',
+    title: 'Task Management',
+    overview: 'Organize and track work items efficiently.',
+    steps: [
+      {
+        id: '1',
+        action: 'View Task Board',
+        description: 'See all tasks organized by status columns.',
+        targetSelector: '.task-board',
+        interactionType: 'observe'
+      }
+    ],
+    tips: ['Update task status regularly', 'Use labels for categorization'],
+    useCases: ['Sprint planning', 'Daily standups', 'Progress tracking']
+  },
+  goals: {
+    id: 'goals',
+    module: 'Goals',
+    title: 'Strategic Goals Management',
+    overview: 'Set and track strategic objectives.',
+    steps: [
+      {
+        id: '1',
+        action: 'Create Strategic Goals',
+        description: 'Define measurable objectives for your product.',
+        targetSelector: 'button:contains("New Goal")',
+        interactionType: 'click'
+      }
+    ],
+    tips: ['Use SMART goal criteria', 'Regular progress reviews'],
+    useCases: ['Quarterly planning', 'OKR management', 'Strategic alignment']
+  },
+  releases: {
+    id: 'releases',
+    module: 'Releases',
+    title: 'Release Management',
+    overview: 'Plan and manage product releases.',
+    steps: [
+      {
+        id: '1',
+        action: 'Plan Release',
+        description: 'Create and schedule new product releases.',
+        targetSelector: 'button:contains("New Release")',
+        interactionType: 'click'
+      }
+    ],
+    tips: ['Set realistic timelines', 'Include buffer time'],
+    useCases: ['Release planning', 'Feature delivery', 'Stakeholder communication']
+  },
+  feedback: {
+    id: 'feedback',
+    module: 'Feedback',
+    title: 'Customer Feedback Management',
+    overview: 'Collect and analyze customer feedback.',
+    steps: [
+      {
+        id: '1',
+        action: 'Review Feedback',
+        description: 'Examine customer suggestions and complaints.',
+        targetSelector: '.feedback-list',
+        interactionType: 'observe'
+      }
+    ],
+    tips: ['Respond promptly to feedback', 'Categorize by themes'],
+    useCases: ['Product improvement', 'Customer satisfaction', 'Feature validation']
+  },
+  roadmap: {
+    id: 'roadmap',
+    module: 'Roadmap',
+    title: 'Product Roadmap',
+    overview: 'Visualize product strategy and timeline.',
+    steps: [
+      {
+        id: '1',
+        action: 'View Roadmap Timeline',
+        description: 'See features plotted across time horizons.',
+        targetSelector: '.roadmap-timeline',
+        interactionType: 'observe'
+      }
+    ],
+    tips: ['Update regularly', 'Share with stakeholders'],
+    useCases: ['Strategic planning', 'Stakeholder alignment', 'Resource planning']
+  },
+  analytics: {
+    id: 'analytics',
+    module: 'Analytics',
+    title: 'Product Analytics',
+    overview: 'Analyze product performance and metrics.',
+    steps: [
+      {
+        id: '1',
+        action: 'View Analytics Dashboard',
+        description: 'Review key performance indicators and trends.',
+        targetSelector: '.analytics-dashboard',
+        interactionType: 'observe'
+      }
+    ],
+    tips: ['Set up automated reports', 'Focus on actionable metrics'],
+    useCases: ['Performance monitoring', 'Data-driven decisions', 'Trend analysis']
+  },
+  reports: {
+    id: 'reports',
+    module: 'Reports',
+    title: 'Reporting System',
+    overview: 'Generate comprehensive reports and insights.',
+    steps: [
+      {
+        id: '1',
+        action: 'Create Custom Report',
+        description: 'Build reports tailored to your needs.',
+        targetSelector: 'button:contains("New Report")',
+        interactionType: 'click'
+      }
+    ],
+    tips: ['Schedule regular reports', 'Customize for audience'],
+    useCases: ['Executive briefings', 'Team updates', 'Stakeholder communication']
+  },
+  team: {
+    id: 'team',
+    module: 'Team',
+    title: 'Team Management',
+    overview: 'Manage team members and collaborate effectively.',
+    steps: [
+      {
+        id: '1',
+        action: 'View Team Dashboard',
+        description: 'See team performance and workload distribution.',
+        targetSelector: '.team-dashboard',
+        interactionType: 'observe'
+      }
+    ],
+    tips: ['Regular team check-ins', 'Balance workload'],
+    useCases: ['Team coordination', 'Resource allocation', 'Performance tracking']
+  },
+  settings: {
+    id: 'settings',
+    module: 'Settings',
+    title: 'Application Settings',
+    overview: 'Configure your workspace and preferences.',
+    steps: [
+      {
+        id: '1',
+        action: 'Update Profile',
+        description: 'Modify your personal information and preferences.',
+        targetSelector: '.profile-settings',
+        interactionType: 'click'
+      }
+    ],
+    tips: ['Keep profile updated', 'Set notification preferences'],
+    useCases: ['Account management', 'Workspace configuration', 'Team setup']
   }
-  // Add other modules...
 };
 
 export const EnhancedVoiceTrainingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -206,13 +351,11 @@ export const EnhancedVoiceTrainingProvider: React.FC<{ children: React.ReactNode
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const highlightStylesRef = useRef<HTMLStyleElement | null>(null);
 
-  // Initialize speech synthesis and create highlight styles
   useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       synthRef.current = window.speechSynthesis;
     }
 
-    // Create dynamic highlight styles
     const style = document.createElement('style');
     style.textContent = `
       .voice-training-highlight {
@@ -261,7 +404,6 @@ export const EnhancedVoiceTrainingProvider: React.FC<{ children: React.ReactNode
     document.head.appendChild(style);
     highlightStylesRef.current = style;
 
-    // Auto-stop on user interaction
     const handleUserInteraction = (e: Event) => {
       if (isActive && !(e.target as HTMLElement)?.closest('.voice-training-controls')) {
         pauseTraining();
@@ -292,7 +434,6 @@ export const EnhancedVoiceTrainingProvider: React.FC<{ children: React.ReactNode
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setHighlightedElement(element);
 
-      // Animate cursor to element
       const rect = element.getBoundingClientRect();
       const cursor = document.createElement('div');
       cursor.className = 'voice-training-cursor';
@@ -312,7 +453,6 @@ export const EnhancedVoiceTrainingProvider: React.FC<{ children: React.ReactNode
       setHighlightedElement(null);
     }
     
-    // Remove any existing cursors
     document.querySelectorAll('.voice-training-cursor').forEach(cursor => cursor.remove());
   }, [highlightedElement]);
 
@@ -348,7 +488,6 @@ export const EnhancedVoiceTrainingProvider: React.FC<{ children: React.ReactNode
     const stepText = `${step.action}. ${step.description}`;
     
     speak(stepText, () => {
-      // Highlight element after speaking
       if (step.targetSelector) {
         setTimeout(() => {
           highlightElement(step.targetSelector!);
@@ -485,7 +624,6 @@ export const EnhancedVoiceTrainingProvider: React.FC<{ children: React.ReactNode
         <div className="fixed bottom-4 right-4 z-50 w-96 voice-training-controls">
           <Card className="border-primary/20 shadow-2xl bg-background/95 backdrop-blur-sm">
             <CardContent className="p-4 space-y-4">
-              {/* Header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-4 w-4 text-primary" />
@@ -513,7 +651,6 @@ export const EnhancedVoiceTrainingProvider: React.FC<{ children: React.ReactNode
                 </div>
               </div>
 
-              {/* Progress */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span>Step {currentStepIndex + 1} of {currentGuide.steps.length}</span>
@@ -522,7 +659,6 @@ export const EnhancedVoiceTrainingProvider: React.FC<{ children: React.ReactNode
                 <Progress value={progressPercentage} className="h-2" />
               </div>
 
-              {/* Current Step */}
               {currentStepIndex < currentGuide.steps.length && (
                 <div className="space-y-2">
                   <div className="font-medium text-sm">
@@ -534,7 +670,6 @@ export const EnhancedVoiceTrainingProvider: React.FC<{ children: React.ReactNode
                 </div>
               )}
 
-              {/* Controls */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   <Button
@@ -584,7 +719,6 @@ export const EnhancedVoiceTrainingProvider: React.FC<{ children: React.ReactNode
                 </div>
               </div>
 
-              {/* Speed Control */}
               <div className="flex items-center gap-2 text-xs">
                 <span>Speed:</span>
                 <Slider

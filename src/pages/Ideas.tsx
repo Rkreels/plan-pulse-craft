@@ -1,5 +1,8 @@
 
 import { useState, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { PageTitle } from "@/components/common/PageTitle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +16,17 @@ import { v4 as uuidv4 } from "uuid";
 import { Feature } from "@/types";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { VoiceTrainingButton } from "@/components/voice-training/VoiceTrainingButton";
+
+// Form validation schema
+const ideaSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters").max(500, "Description must be less than 500 characters"),
+  userStory: z.string().optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]),
+  value: z.number().min(1).max(10),
+  effort: z.number().min(1).max(10)
+});
 
 const Ideas = () => {
   const { features, addFeature, updateFeature } = useAppContext();
@@ -20,72 +34,114 @@ const Ideas = () => {
   const [editingIdea, setEditingIdea] = useState<Feature | undefined>(undefined);
   const navigate = useNavigate();
   
-  // Enhanced filtering and search
+  // Enhanced filtering and search with validation
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("votes");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [filterErrors, setFilterErrors] = useState<string[]>([]);
   
   // Filter features to only show ideas
   const ideaFeatures = features.filter(feature => feature.status === "idea");
   
-  // Enhanced filtering and sorting
+  // Enhanced filtering and sorting with error handling
   const filteredAndSortedIdeas = useMemo(() => {
-    let filtered = ideaFeatures.filter(idea => {
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        return idea.title.toLowerCase().includes(query) ||
-               idea.description.toLowerCase().includes(query);
-      }
-      return true;
-    });
+    try {
+      let filtered = ideaFeatures.filter(idea => {
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase();
+          return idea.title.toLowerCase().includes(query) ||
+                 idea.description.toLowerCase().includes(query);
+        }
+        return true;
+      });
 
-    filtered.sort((a, b) => {
-      let aValue: any, bValue: any;
-      
-      switch (sortBy) {
-        case "votes":
-          aValue = a.votes || 0;
-          bValue = b.votes || 0;
-          break;
-        case "title":
-          aValue = a.title.toLowerCase();
-          bValue = b.title.toLowerCase();
-          break;
-        case "priority":
-          const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-          aValue = priorityOrder[a.priority] || 0;
-          bValue = priorityOrder[b.priority] || 0;
-          break;
-        case "createdAt":
-          aValue = new Date(a.createdAt).getTime();
-          bValue = new Date(b.createdAt).getTime();
-          break;
-        default:
-          aValue = a.votes || 0;
-          bValue = b.votes || 0;
-      }
-      
-      if (sortOrder === "asc") {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    });
+      filtered.sort((a, b) => {
+        let aValue: any, bValue: any;
+        
+        switch (sortBy) {
+          case "votes":
+            aValue = a.votes || 0;
+            bValue = b.votes || 0;
+            break;
+          case "title":
+            aValue = a.title.toLowerCase();
+            bValue = b.title.toLowerCase();
+            break;
+          case "priority":
+            const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+            aValue = priorityOrder[a.priority] || 0;
+            bValue = priorityOrder[b.priority] || 0;
+            break;
+          case "createdAt":
+            aValue = new Date(a.createdAt).getTime();
+            bValue = new Date(b.createdAt).getTime();
+            break;
+          case "value":
+            aValue = a.value || 0;
+            bValue = b.value || 0;
+            break;
+          case "effort":
+            aValue = a.effort || 0;
+            bValue = b.effort || 0;
+            break;
+          default:
+            aValue = a.votes || 0;
+            bValue = b.votes || 0;
+        }
+        
+        if (sortOrder === "asc") {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
 
-    return filtered;
+      setFilterErrors([]);
+      return filtered;
+    } catch (error) {
+      setFilterErrors(['Error filtering ideas. Please try again.']);
+      return ideaFeatures;
+    }
   }, [ideaFeatures, searchQuery, sortBy, sortOrder]);
   
   const handleAddIdea = (feature: Feature) => {
-    const newIdea: Feature = {
-      ...feature,
-      id: feature.id || uuidv4(),
-      status: "idea" as const,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    addFeature(newIdea);
-    toast.success("New idea added successfully");
+    try {
+      // Validate the feature data
+      const validatedData = ideaSchema.parse({
+        title: feature.title,
+        description: feature.description,
+        userStory: feature.userStory,
+        priority: feature.priority,
+        value: feature.value,
+        effort: feature.effort
+      });
+
+      const newIdea: Feature = {
+        ...feature,
+        ...validatedData,
+        id: feature.id || uuidv4(),
+        status: "idea" as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        votes: 0
+      };
+      
+      addFeature(newIdea);
+      toast.success("New idea added successfully", {
+        description: `"${newIdea.title}" has been added to your ideas collection.`
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errorMessages = error.errors.map(err => err.message).join(', ');
+        toast.error("Validation Error", {
+          description: errorMessages
+        });
+      } else {
+        toast.error("Failed to add idea", {
+          description: "Please check your input and try again."
+        });
+      }
+    }
   };
   
   const handleEditIdea = (idea: Feature) => {
@@ -93,65 +149,124 @@ const Ideas = () => {
   };
 
   const handleUpdateIdea = (updatedIdea: Feature) => {
-    updateFeature(updatedIdea);
-    setEditingIdea(undefined);
-    toast.success("Idea updated successfully");
+    try {
+      // Validate the updated feature data
+      const validatedData = ideaSchema.parse({
+        title: updatedIdea.title,
+        description: updatedIdea.description,
+        userStory: updatedIdea.userStory,
+        priority: updatedIdea.priority,
+        value: updatedIdea.value,
+        effort: updatedIdea.effort
+      });
+
+      const finalIdea = {
+        ...updatedIdea,
+        ...validatedData,
+        updatedAt: new Date()
+      };
+
+      updateFeature(finalIdea);
+      setEditingIdea(undefined);
+      toast.success("Idea updated successfully", {
+        description: `"${finalIdea.title}" has been updated.`
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errorMessages = error.errors.map(err => err.message).join(', ');
+        toast.error("Validation Error", {
+          description: errorMessages
+        });
+      } else {
+        toast.error("Failed to update idea", {
+          description: "Please check your input and try again."
+        });
+      }
+    }
   };
 
   const handleDeleteIdea = (id: string) => {
     const ideaToDelete = features.find(f => f.id === id);
-    if (ideaToDelete && window.confirm("Are you sure you want to delete this idea?")) {
-      // Instead of changing status, actually remove from ideas by updating to a different status
+    if (ideaToDelete && window.confirm(`Are you sure you want to delete "${ideaToDelete.title}"?`)) {
       updateFeature({
         ...ideaToDelete,
         status: "not_started" as const,
         updatedAt: new Date()
       });
-      toast.success("Idea deleted successfully");
+      toast.success("Idea deleted successfully", {
+        description: `"${ideaToDelete.title}" has been removed from your ideas.`
+      });
     }
   };
   
   const handleVoteForIdea = (idea: Feature) => {
-    const updatedIdea = {
-      ...idea,
-      votes: (idea.votes || 0) + 1,
-      updatedAt: new Date()
-    };
-    
-    updateFeature(updatedIdea);
-    toast.success(`Voted for "${idea.title}"`);
+    try {
+      const updatedIdea = {
+        ...idea,
+        votes: (idea.votes || 0) + 1,
+        updatedAt: new Date()
+      };
+      
+      updateFeature(updatedIdea);
+      toast.success(`Voted for "${idea.title}"`, {
+        description: `Total votes: ${updatedIdea.votes}`
+      });
+    } catch (error) {
+      toast.error("Failed to vote", {
+        description: "Please try again."
+      });
+    }
   };
 
   const handlePromoteToFeature = (idea: Feature) => {
-    const updatedFeature: Feature = {
-      ...idea,
-      status: "backlog" as const,
-      updatedAt: new Date()
-    };
-    
-    updateFeature(updatedFeature);
-    toast.success(`"${idea.title}" promoted to feature backlog`);
-    navigate("/features");
+    try {
+      const updatedFeature: Feature = {
+        ...idea,
+        status: "backlog" as const,
+        updatedAt: new Date()
+      };
+      
+      updateFeature(updatedFeature);
+      toast.success(`"${idea.title}" promoted to feature backlog`, {
+        description: "The idea is now available in the Features section."
+      });
+      navigate("/features");
+    } catch (error) {
+      toast.error("Failed to promote idea", {
+        description: "Please try again."
+      });
+    }
   };
 
   const handleExport = () => {
-    const dataToExport = filteredAndSortedIdeas.map(idea => ({
-      title: idea.title,
-      description: idea.description,
-      priority: idea.priority,
-      votes: idea.votes || 0,
-      createdAt: idea.createdAt
-    }));
+    try {
+      const dataToExport = filteredAndSortedIdeas.map(idea => ({
+        title: idea.title,
+        description: idea.description,
+        priority: idea.priority,
+        votes: idea.votes || 0,
+        value: idea.value,
+        effort: idea.effort,
+        createdAt: idea.createdAt,
+        userStory: idea.userStory
+      }));
 
-    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'ideas-export.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    toast.success("Ideas exported successfully");
+      const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ideas-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      toast.success("Ideas exported successfully", {
+        description: `${dataToExport.length} ideas exported to JSON file.`
+      });
+    } catch (error) {
+      toast.error("Export failed", {
+        description: "Please try again."
+      });
+    }
   };
 
   const handleImport = () => {
@@ -165,19 +280,45 @@ const Ideas = () => {
         reader.onload = (e) => {
           try {
             const importedIdeas = JSON.parse(e.target?.result as string);
+            
+            if (!Array.isArray(importedIdeas)) {
+              throw new Error("Invalid file format");
+            }
+
+            let successCount = 0;
+            let errorCount = 0;
+
             importedIdeas.forEach((idea: any) => {
-              addFeature({
-                ...idea,
-                id: uuidv4(),
-                status: "idea" as const,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                workspaceId: "workspace-1"
-              });
+              try {
+                const validatedIdea = ideaSchema.parse(idea);
+                addFeature({
+                  ...validatedIdea,
+                  id: uuidv4(),
+                  status: "idea" as const,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  workspaceId: "workspace-1",
+                  votes: idea.votes || 0
+                });
+                successCount++;
+              } catch (error) {
+                errorCount++;
+              }
             });
-            toast.success(`${importedIdeas.length} ideas imported successfully`);
+
+            if (successCount > 0) {
+              toast.success(`${successCount} ideas imported successfully`, {
+                description: errorCount > 0 ? `${errorCount} ideas failed validation.` : undefined
+              });
+            } else {
+              toast.error("Import failed", {
+                description: "No valid ideas found in the file."
+              });
+            }
           } catch (error) {
-            toast.error("Failed to import ideas. Please check the file format.");
+            toast.error("Failed to import ideas", {
+              description: "Please check the file format and try again."
+            });
           }
         };
         reader.readAsText(file);
@@ -195,13 +336,35 @@ const Ideas = () => {
       default: return "bg-gray-500 text-white";
     }
   };
+
+  const handleSearchChange = (value: string) => {
+    if (value.length > 100) {
+      toast.error("Search query too long", {
+        description: "Please use a shorter search term."
+      });
+      return;
+    }
+    setSearchQuery(value);
+  };
   
   return (
     <>
       <PageTitle
         title="Feature Ideas"
         description="Collect and organize new product ideas"
+        action={<VoiceTrainingButton module="ideas" />}
       />
+      
+      {filterErrors.length > 0 && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <h4 className="font-semibold text-red-800">Filter Errors:</h4>
+          <ul className="text-red-600 text-sm">
+            {filterErrors.map((error, index) => (
+              <li key={index}>• {error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       
       <div className="flex flex-col lg:flex-row gap-4 justify-between items-start mb-6">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
@@ -210,8 +373,9 @@ const Ideas = () => {
             <Input
               placeholder="Search ideas..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
+              maxLength={100}
             />
           </div>
           
@@ -232,6 +396,8 @@ const Ideas = () => {
               <SelectItem value="title-asc">Title A-Z</SelectItem>
               <SelectItem value="title-desc">Title Z-A</SelectItem>
               <SelectItem value="priority-desc">Priority High-Low</SelectItem>
+              <SelectItem value="value-desc">Value High-Low</SelectItem>
+              <SelectItem value="effort-asc">Effort Low-High</SelectItem>
               <SelectItem value="createdAt-desc">Newest First</SelectItem>
               <SelectItem value="createdAt-asc">Oldest First</SelectItem>
             </SelectContent>
@@ -283,6 +449,7 @@ const Ideas = () => {
                       size="icon" 
                       className="h-8 w-8"
                       onClick={() => handleEditIdea(idea)}
+                      title="Edit idea"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -291,6 +458,7 @@ const Ideas = () => {
                       size="icon" 
                       className="h-8 w-8 text-red-500 hover:text-red-700"
                       onClick={() => handleDeleteIdea(idea.id)}
+                      title="Delete idea"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -329,6 +497,7 @@ const Ideas = () => {
                     size="sm"
                     onClick={() => handleVoteForIdea(idea)}
                     className="flex items-center gap-1"
+                    title="Vote for this idea"
                   >
                     <ThumbsUp className="h-3 w-3" />
                     <span className="font-medium">{idea.votes || 0}</span>
@@ -337,6 +506,7 @@ const Ideas = () => {
                     variant="default"
                     size="sm"
                     onClick={() => handlePromoteToFeature(idea)}
+                    title="Promote to feature backlog"
                   >
                     Promote
                   </Button>
