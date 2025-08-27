@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAppContext } from "@/contexts/AppContext";
-import { VoiceTrainingButton } from "@/components/voice-training/VoiceTrainingButton";
+
 import { BarChart3, FileText, TrendingUp, Users, Target, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
@@ -137,9 +137,6 @@ const Reports = () => {
           title="Report Builder" 
           description="Create custom reports and analytics"
         />
-        <div className="flex justify-end mb-4">
-          <VoiceTrainingButton module="reports" />
-        </div>
         <ReportBuilder 
           reportId={null}
           onReportSaved={handleReportSaved}
@@ -167,9 +164,6 @@ const Reports = () => {
         description="Generate insights and track progress with custom reports"
       />
       
-      <div className="flex justify-end mb-4">
-        <VoiceTrainingButton module="reports" />
-      </div>
 
       {/* Quick Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

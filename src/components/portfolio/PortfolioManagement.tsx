@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, Cell, PieChart, Pie } from 'recharts';
 import { Plus, Filter, Download, RefreshCw, TrendingUp, TrendingDown, Target, Users, DollarSign, Calendar } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
-import { VoiceTrainingButton } from '@/components/voice-training/VoiceTrainingButton';
 
 interface Portfolio {
   id: string;
@@ -145,7 +144,6 @@ const PortfolioManagement: React.FC = () => {
           <p className="text-muted-foreground">Manage and track strategic initiatives across your organization</p>
         </div>
         <div className="flex gap-2">
-          <VoiceTrainingButton module="portfolio" />
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Export

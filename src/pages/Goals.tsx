@@ -40,8 +40,8 @@ const Goals = () => {
   const canEdit = hasPermission("edit_goal");
   const canDelete = hasPermission("delete_goal");
 
-  // Role-based access control
-  if (!hasRole("executive")) {
+  // Role-based access control - Allow executives, admins, and product managers
+  if (!hasRole("executive") && !hasRole("admin") && !hasRole("product_manager")) {
     return <AccessDenied requiredRole="executive" />;
   }
 

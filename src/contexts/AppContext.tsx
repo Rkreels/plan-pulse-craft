@@ -71,15 +71,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Set default view
         const defaultView = baseData.roadmapViews.find(v => v.isDefault) || baseData.roadmapViews[0];
         setCurrentView(defaultView);
-        
-        console.log("Enhanced data loaded:", {
-          goals: enhancedData.goals.length,
-          releases: enhancedData.releases.length,
-          epics: enhancedData.epics.length,
-          features: enhancedData.features.length,
-          feedback: enhancedData.feedback.length,
-          tasks: enhancedData.tasks.length
-        });
       } catch (error) {
         console.error("Error loading data:", error);
         toast({

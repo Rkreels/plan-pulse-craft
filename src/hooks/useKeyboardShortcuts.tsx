@@ -34,28 +34,40 @@ export const useKeyboardShortcuts = () => {
         return;
       }
 
-      // Navigation shortcuts (G + key)
+      // Navigation shortcuts (Ctrl/Cmd + key)
       if (event.ctrlKey || event.metaKey) {
         switch (event.key) {
           case "k":
             event.preventDefault();
-            // Would open command palette if implemented
-            console.log("Command palette shortcut");
+            // Focus search input
+            const searchInput = document.querySelector('input[placeholder*="search" i], input[placeholder*="Search" i]') as HTMLInputElement;
+            if (searchInput) {
+              searchInput.focus();
+            }
             break;
           case "s":
             event.preventDefault();
-            // Would save current form if implemented
-            console.log("Save shortcut");
+            // Trigger save for forms
+            const saveButton = document.querySelector('button[type="submit"], button:contains("Save")') as HTMLButtonElement;
+            if (saveButton && !saveButton.disabled) {
+              saveButton.click();
+            }
             break;
           case "e":
             event.preventDefault();
-            // Would export data if implemented
-            console.log("Export shortcut");
+            // Trigger export
+            const exportButton = document.querySelector('button:contains("Export")') as HTMLButtonElement;
+            if (exportButton && !exportButton.disabled) {
+              exportButton.click();
+            }
             break;
           case "i":
             event.preventDefault();
-            // Would import data if implemented  
-            console.log("Import shortcut");
+            // Trigger import
+            const importButton = document.querySelector('button:contains("Import")') as HTMLButtonElement;
+            if (importButton && !importButton.disabled) {
+              importButton.click();
+            }
             break;
         }
         return;
@@ -65,8 +77,11 @@ export const useKeyboardShortcuts = () => {
       switch (event.key) {
         case "n":
           event.preventDefault();
-          // Would create new item based on current page
-          console.log("New item shortcut");
+          // Create new item based on current page
+          const addButton = document.querySelector('button:contains("Add"), button:contains("New"), button:contains("Create")') as HTMLButtonElement;
+          if (addButton && !addButton.disabled) {
+            addButton.click();
+          }
           break;
         case "/":
           event.preventDefault();

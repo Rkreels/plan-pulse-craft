@@ -16,7 +16,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Feature } from "@/types";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { VoiceTrainingButton } from "@/components/voice-training/VoiceTrainingButton";
+
 
 // Form validation schema
 const ideaSchema = z.object({
@@ -364,10 +364,6 @@ const Ideas = () => {
         title="Feature Ideas"
         description="Collect and organize new product ideas"
       />
-      
-      <div className="flex justify-end mb-4">
-        <VoiceTrainingButton module="ideas" />
-      </div>
       
       {filterErrors.length > 0 && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">

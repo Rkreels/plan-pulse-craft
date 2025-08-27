@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, Cell } from 'recharts';
 import { Lightbulb, Calculator, TrendingUp, Users, DollarSign, Target, Star, ThumbsUp, MessageSquare } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
-import { VoiceTrainingButton } from '@/components/voice-training/VoiceTrainingButton';
+
 
 interface Idea {
   id: string;
@@ -180,7 +180,6 @@ const IdeaScoring: React.FC = () => {
           <p className="text-muted-foreground">Evaluate and prioritize ideas using data-driven scoring models</p>
         </div>
         <div className="flex gap-2">
-          <VoiceTrainingButton module="ideas" />
           <Button variant="outline">
             <Calculator className="h-4 w-4 mr-2" />
             Configure Scoring
