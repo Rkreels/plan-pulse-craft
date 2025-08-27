@@ -210,14 +210,14 @@ export const AddEditTaskDialog = ({
                 value={formData.featureId || ""}
                 onValueChange={(value) => setFormData(prev => ({ 
                   ...prev, 
-                  featureId: value || undefined 
+                  featureId: value === "none" ? undefined : value 
                 }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select feature" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No feature</SelectItem>
+                  <SelectItem value="none">No feature</SelectItem>
                   {features.map(feature => (
                     <SelectItem key={feature.id} value={feature.id}>
                       {feature.title}
@@ -233,14 +233,14 @@ export const AddEditTaskDialog = ({
                 value={formData.epicId || ""}
                 onValueChange={(value) => setFormData(prev => ({ 
                   ...prev, 
-                  epicId: value || undefined 
+                  epicId: value === "none" ? undefined : value 
                 }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select epic" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No epic</SelectItem>
+                  <SelectItem value="none">No epic</SelectItem>
                   {epics.map(epic => (
                     <SelectItem key={epic.id} value={epic.id}>
                       {epic.title}
