@@ -2,7 +2,6 @@
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAppContext } from "@/contexts/AppContext";
-import { MainLayout } from "@/components/layout/MainLayout";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -17,5 +16,5 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return <MainLayout>{children}</MainLayout>;
+  return <>{children}</>;
 };
